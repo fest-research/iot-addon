@@ -1,0 +1,19 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "yMklxvPjoeonxCW93j8AeohnRI4=",
+			"path": "github.com/emicklei/go-restful",
+			"revision": "d916db217751a3fef55337f799c31fde4b8efcf1",
+			"revisionTime": "2016-12-22T19:12:39Z"
+		},
+		{
+			"checksumSHA1": "3xWz4fZ9xW+CfADpYoPFcZCYJ4E=",
+			"path": "github.com/emicklei/go-restful/log",
+			"revision": "d916db217751a3fef55337f799c31fde4b8efcf1",
+			"revisionTime": "2016-12-22T19:12:39Z"
+		}
+	],
+	"rootPath": "github.com/fest-research/IoT-apiserver"
+}
