@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"io/ioutil"
 	"log"
 	"net/http"
 
@@ -64,7 +65,12 @@ func createNode(req *restful.Request, resp *restful.Response) {
 	if err != nil {
 		log.Print(err)
 	}
-	log.Printf("API Server response: %v", r)
+	defer r.Body.Close()
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Print(err)
+	}
+	log.Printf("API Server response: %v", string(body))
 }
 
 func getNode(req *restful.Request, resp *restful.Response) {

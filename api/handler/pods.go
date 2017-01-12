@@ -68,7 +68,12 @@ func createPod(req *restful.Request, resp *restful.Response) {
 	if err != nil {
 		log.Print(err)
 	}
-	log.Printf("API Server response: %v", r)
+	defer r.Body.Close()
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Print(err)
+	}
+	log.Printf("API Server response: %v", string(body))
 }
 
 func getPod(req *restful.Request, resp *restful.Response) {
@@ -84,7 +89,6 @@ func getPod(req *restful.Request, resp *restful.Response) {
 	if err != nil {
 		log.Print(err)
 	}
-
 	log.Printf("API Server response: %s", string(body))
 }
 
