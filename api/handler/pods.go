@@ -4,12 +4,16 @@ import (
 	"net/http"
 
 	"github.com/emicklei/go-restful"
+	"github.com/emicklei/go-restful/log"
+	"io/ioutil"
 )
+
+const API_SERVER = "http://127.0.0.1:8080"
 
 func init() {
 	// Create
 	createHandler := &APIHandler{
-		Path:           "/{namespace}/pod",
+		Path:           "/pods",
 		Parameters:     make([]*restful.Parameter, 0),
 		HandlerFunc:    createPod,
 		HTTPMethod:     "POST",
@@ -21,7 +25,7 @@ func init() {
 
 	// Read
 	getHandler := &APIHandler{
-		Path:           "/{namespace}/pod",
+		Path:           "/pods",
 		Parameters:     make([]*restful.Parameter, 0),
 		HandlerFunc:    getPod,
 		HTTPMethod:     "GET",
@@ -33,7 +37,7 @@ func init() {
 
 	// Update
 	updateHandler := &APIHandler{
-		Path:           "/{namespace}/pod",
+		Path:           "/pods",
 		Parameters:     make([]*restful.Parameter, 0),
 		HandlerFunc:    updatePod,
 		HTTPMethod:     "PUT",
@@ -45,7 +49,7 @@ func init() {
 
 	// Delete
 	deleteHandler := &APIHandler{
-		Path:           "/{namespace}/pod",
+		Path:           "/pods",
 		Parameters:     make([]*restful.Parameter, 0),
 		HandlerFunc:    deletePod,
 		HTTPMethod:     "DELETE",
@@ -57,21 +61,40 @@ func init() {
 }
 
 func createPod(req *restful.Request, resp *restful.Response) {
+	log.Print(req)
 
+	r, err := http.Get(API_SERVER + req.Request.URL.String())
+	if err != nil {
+		log.Print(err)
+	}
+	log.Printf("API Server response: %v", r)
 }
 
 func getPod(req *restful.Request, resp *restful.Response) {
+	log.Print(req)
 
+	r, err := http.Get(API_SERVER + req.Request.URL.String())
+	if err != nil {
+		log.Print(err)
+	}
+
+	defer r.Body.Close()
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Print(err)
+	}
+
+	log.Printf("API Server response: %s", string(body))
 }
 
 func listPods(req *restful.Request, resp *restful.Response) {
-
+	log.Print(req)
 }
 
 func updatePod(req *restful.Request, resp *restful.Response) {
-
+	log.Print(req)
 }
 
 func deletePod(req *restful.Request, resp *restful.Response) {
-
+	log.Print(req)
 }

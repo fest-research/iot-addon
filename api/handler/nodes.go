@@ -9,7 +9,7 @@ import (
 func init() {
 	// Create
 	createHandler := &APIHandler{
-		Path:           "/node",
+		Path:           "/nodes",
 		Parameters:     make([]*restful.Parameter, 0),
 		HandlerFunc:    createNode,
 		HTTPMethod:     "POST",
@@ -21,7 +21,7 @@ func init() {
 
 	// Read
 	getHandler := &APIHandler{
-		Path:           "/node",
+		Path:           "/nodes",
 		Parameters:     make([]*restful.Parameter, 0),
 		HandlerFunc:    getNode,
 		HTTPMethod:     "GET",
@@ -33,7 +33,7 @@ func init() {
 
 	// Update
 	updateHandler := &APIHandler{
-		Path:           "/node",
+		Path:           "/nodes",
 		Parameters:     make([]*restful.Parameter, 0),
 		HandlerFunc:    updateNode,
 		HTTPMethod:     "PUT",
@@ -45,7 +45,7 @@ func init() {
 
 	// Delete
 	deleteHandler := &APIHandler{
-		Path:           "/node",
+		Path:           "/nodes",
 		Parameters:     make([]*restful.Parameter, 0),
 		HandlerFunc:    deleteNode,
 		HTTPMethod:     "DELETE",

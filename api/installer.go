@@ -2,6 +2,7 @@ package api
 
 import (
 	restful "github.com/emicklei/go-restful"
+	"github.com/emicklei/go-restful/log"
 	"github.com/fest-research/IoT-apiserver/api/handler"
 )
 
@@ -13,9 +14,15 @@ type APIInstaller struct {
 
 // NewWebService creates the core web service
 func (installer *APIInstaller) NewWebService() *restful.WebService {
-	ws := new(restful.WebService).Path(installer.Root).Consumes("*/*").Produces("application/json")
+	ws := new(restful.WebService).Filter(webserviceLogging).Path(installer.Root).Consumes("*/*").Produces("application/json")
 	ws.ApiVersion(installer.Version)
 	return ws
+}
+
+// WebService Filter
+func webserviceLogging(req *restful.Request, resp *restful.Response, chain *restful.FilterChain) {
+	log.Printf("[webservice-filter (logger)] \nRequest method: %s\nRequest path: %s\n", req.Request.Method, req.Request.URL)
+	chain.ProcessFilter(req, resp)
 }
 
 // Install installs the API handlers for all API resources
