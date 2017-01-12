@@ -79,7 +79,7 @@ func createPod(req *restful.Request, resp *restful.Response) {
 func getPod(req *restful.Request, resp *restful.Response) {
 	log.Print(req)
 
-	r, err := http.Get(API_SERVER + req.Request.URL.String())
+	r, err := http.Get(API_SERVER + "/api/v1/pods")
 	if err != nil {
 		log.Print(err)
 	}
@@ -88,8 +88,13 @@ func getPod(req *restful.Request, resp *restful.Response) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Print(err)
+		resp.WriteHeader(http.StatusBadRequest)
+		return
 	}
 	log.Printf("API Server response: %s", string(body))
+
+	resp.AddHeader("Content-Type", "application/json")
+	resp.Write(body)
 }
 
 func listPods(req *restful.Request, resp *restful.Response) {
