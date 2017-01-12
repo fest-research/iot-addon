@@ -59,9 +59,9 @@ func init() {
 }
 
 func createNode(req *restful.Request, resp *restful.Response) {
-	log.Print(req)
-
-	r, err := http.Get(API_SERVER + req.Request.URL.String())
+	defer req.Request.Body.Close()
+	log.Printf("Request header: %s", req.Request.Header)
+	r, err := http.Post(API_SERVER+req.Request.URL.String(), "application/json", req.Request.Body)
 	if err != nil {
 		log.Print(err)
 	}
