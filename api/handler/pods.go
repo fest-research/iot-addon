@@ -3,9 +3,10 @@ package handler
 import (
 	"net/http"
 
+	"io/ioutil"
+
 	"github.com/emicklei/go-restful"
 	"github.com/emicklei/go-restful/log"
-	"io/ioutil"
 )
 
 const API_SERVER = "http://127.0.0.1:8080"

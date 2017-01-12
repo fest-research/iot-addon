@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/emicklei/go-restful"
@@ -57,7 +58,13 @@ func init() {
 }
 
 func createNode(req *restful.Request, resp *restful.Response) {
+	log.Print(req)
 
+	r, err := http.Get(API_SERVER + req.Request.URL.String())
+	if err != nil {
+		log.Print(err)
+	}
+	log.Printf("API Server response: %v", r)
 }
 
 func getNode(req *restful.Request, resp *restful.Response) {

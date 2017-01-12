@@ -18,7 +18,5 @@ func main() {
 	fmt.Print(len(handler.GetAPIHandlers()))
 
 	restful.Add(ws)
-	routes := ws.Routes()
-	fmt.Printf("%s", routes)
 	http.ListenAndServe(":8083", nil)
 }
