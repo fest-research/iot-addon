@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/emicklei/go-restful"
-	"github.com/taimir/small-kube/api"
-	"github.com/taimir/small-kube/api/handler"
+	"github.com/fest-research/IoT-apiserver/api"
+	"github.com/fest-research/IoT-apiserver/api/handler"
 )
 
 func main() {

@@ -2,7 +2,7 @@ package api
 
 import (
 	restful "github.com/emicklei/go-restful"
-	"github.com/taimir/small-kube/api/handler"
+	"github.com/fest-research/IoT-apiserver/api/handler"
 )
 
 // APIInstaller installs the APIs in the server
