@@ -3,108 +3,54 @@ package handler
 import (
 	"net/http"
 
-	"io/ioutil"
-
 	"github.com/emicklei/go-restful"
-	"github.com/emicklei/go-restful/log"
+	"github.com/fest-research/IoT-apiserver/api/proxy"
 )
 
-const API_SERVER = "http://127.0.0.1:8080"
-
-func init() {
-	// Create
-	createHandler := &APIHandler{
-		Path:           "/pods",
-		Parameters:     make([]*restful.Parameter, 0),
-		HandlerFunc:    createPod,
-		HTTPMethod:     "POST",
-		ReturnedCode:   http.StatusOK,
-		ReturnedMsg:    "OK",
-		ReturnedObject: nil,
-	}
-	registerAPIHandler(createHandler)
-
-	// Read
-	getHandler := &APIHandler{
-		Path:           "/pods",
-		Parameters:     make([]*restful.Parameter, 0),
-		HandlerFunc:    getPod,
-		HTTPMethod:     "GET",
-		ReturnedCode:   http.StatusOK,
-		ReturnedMsg:    "OK",
-		ReturnedObject: nil,
-	}
-	registerAPIHandler(getHandler)
-
-	// Update
-	updateHandler := &APIHandler{
-		Path:           "/pods",
-		Parameters:     make([]*restful.Parameter, 0),
-		HandlerFunc:    updatePod,
-		HTTPMethod:     "PUT",
-		ReturnedCode:   http.StatusOK,
-		ReturnedMsg:    "OK",
-		ReturnedObject: nil,
-	}
-	registerAPIHandler(updateHandler)
-
-	// Delete
-	deleteHandler := &APIHandler{
-		Path:           "/pods",
-		Parameters:     make([]*restful.Parameter, 0),
-		HandlerFunc:    deletePod,
-		HTTPMethod:     "DELETE",
-		ReturnedCode:   http.StatusOK,
-		ReturnedMsg:    "OK",
-		ReturnedObject: nil,
-	}
-	registerAPIHandler(deleteHandler)
+type PodService struct {
+	proxy proxy.IServerProxy
 }
 
-func createPod(req *restful.Request, resp *restful.Response) {
-	log.Print(req)
-
-	r, err := http.Get(API_SERVER + req.Request.URL.String())
-	if err != nil {
-		log.Print(err)
-	}
-	defer r.Body.Close()
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		log.Print(err)
-	}
-	log.Printf("API Server response: %v", string(body))
+func NewPodService(proxy proxy.IServerProxy) PodService {
+	return PodService{proxy: proxy}
 }
 
-func getPod(req *restful.Request, resp *restful.Response) {
-	log.Print(req)
+func (this PodService) Register(ws *restful.WebService) {
+	// List pods
+	ws.Route(
+		ws.Method("GET").
+				Path("/pods").
+				To(this.listPods).
+				Returns(http.StatusOK, "OK", nil).
+				Writes(nil),
+	)
 
-	r, err := http.Get(API_SERVER + "/api/v1/pods")
-	if err != nil {
-		log.Print(err)
-	}
+	// Watch pods
+	ws.Route(
+		ws.Method("GET").
+				Path("/pods").
+				To(this.watchPods).
+				Returns(http.StatusOK, "OK", nil).
+				Writes(nil),
+	)
+}
 
-	defer r.Body.Close()
-	body, err := ioutil.ReadAll(r.Body)
+func (this PodService) listPods(req *restful.Request, resp *restful.Response) {
+	response, err := this.proxy.Get(req)
 	if err != nil {
-		log.Print(err)
-		resp.WriteHeader(http.StatusBadRequest)
-		return
+		handleInternalServerError(resp, err)
 	}
-	log.Printf("API Server response: %s", string(body))
 
 	resp.AddHeader("Content-Type", "application/json")
-	resp.Write(body)
+	resp.Write(response)
 }
 
-func listPods(req *restful.Request, resp *restful.Response) {
-	log.Print(req)
-}
+func (this PodService) watchPods(req *restful.Request, resp *restful.Response) {
+	response, err := this.proxy.Get(req)
+	if err != nil {
+		handleInternalServerError(resp, err)
+	}
 
-func updatePod(req *restful.Request, resp *restful.Response) {
-	log.Print(req)
-}
-
-func deletePod(req *restful.Request, resp *restful.Response) {
-	log.Print(req)
+	resp.AddHeader("Content-Type", "application/json")
+	resp.Write(response)
 }

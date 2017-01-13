@@ -1,90 +1,75 @@
 package handler
 
 import (
-	"io/ioutil"
-	"log"
 	"net/http"
 
 	"github.com/emicklei/go-restful"
+	"github.com/fest-research/IoT-apiserver/api/proxy"
 )
 
-func init() {
-	// Create
-	createHandler := &APIHandler{
-		Path:           "/nodes",
-		Parameters:     make([]*restful.Parameter, 0),
-		HandlerFunc:    createNode,
-		HTTPMethod:     "POST",
-		ReturnedCode:   http.StatusOK,
-		ReturnedMsg:    "OK",
-		ReturnedObject: nil,
-	}
-	registerAPIHandler(createHandler)
-
-	// Read
-	getHandler := &APIHandler{
-		Path:           "/nodes",
-		Parameters:     make([]*restful.Parameter, 0),
-		HandlerFunc:    getNode,
-		HTTPMethod:     "GET",
-		ReturnedCode:   http.StatusOK,
-		ReturnedMsg:    "OK",
-		ReturnedObject: nil,
-	}
-	registerAPIHandler(getHandler)
-
-	// Update
-	updateHandler := &APIHandler{
-		Path:           "/nodes",
-		Parameters:     make([]*restful.Parameter, 0),
-		HandlerFunc:    updateNode,
-		HTTPMethod:     "PUT",
-		ReturnedCode:   http.StatusOK,
-		ReturnedMsg:    "OK",
-		ReturnedObject: nil,
-	}
-	registerAPIHandler(updateHandler)
-
-	// Delete
-	deleteHandler := &APIHandler{
-		Path:           "/nodes",
-		Parameters:     make([]*restful.Parameter, 0),
-		HandlerFunc:    deleteNode,
-		HTTPMethod:     "DELETE",
-		ReturnedCode:   http.StatusOK,
-		ReturnedMsg:    "OK",
-		ReturnedObject: nil,
-	}
-	registerAPIHandler(deleteHandler)
+type NodeService struct {
+	proxy proxy.IServerProxy
 }
 
-func createNode(req *restful.Request, resp *restful.Response) {
-	defer req.Request.Body.Close()
-	log.Printf("Request header: %s", req.Request.Header)
-	r, err := http.Post(API_SERVER+req.Request.URL.String(), "application/json", req.Request.Body)
+func NewNodeService(proxy proxy.IServerProxy) NodeService {
+	return NodeService{proxy: proxy}
+}
+
+func (this NodeService) Register(ws *restful.WebService) {
+	// Create node
+	ws.Route(
+		ws.Method("POST").
+			Path("/nodes").
+			To(this.createNode).
+			Returns(http.StatusOK, "OK", nil).
+			Writes(nil),
+	)
+
+	// List nodes
+	ws.Route(
+		ws.Method("GET").
+			Path("/nodes").
+			To(this.listNodes).
+			Returns(http.StatusOK, "OK", nil).
+			Writes(nil),
+	)
+
+	// Watch nodes
+	ws.Route(
+		ws.Method("GET").
+			Path("/nodes").
+			To(this.watchNodes).
+			Returns(http.StatusOK, "OK", nil).
+			Writes(nil),
+	)
+}
+
+func (this NodeService) createNode(req *restful.Request, resp *restful.Response) {
+	response, err := this.proxy.Post(req)
 	if err != nil {
-		log.Print(err)
+		handleInternalServerError(resp, err)
 	}
-	defer r.Body.Close()
-	body, err := ioutil.ReadAll(r.Body)
+
+	resp.AddHeader("Content-Type", "application/json")
+	resp.Write(response)
+}
+
+func (this NodeService) watchNodes(req *restful.Request, resp *restful.Response) {
+	response, err := this.proxy.Get(req)
 	if err != nil {
-		log.Print(err)
+		handleInternalServerError(resp, err)
 	}
-	log.Printf("API Server response: %v", string(body))
+
+	resp.AddHeader("Content-Type", "application/json")
+	resp.Write(response)
 }
 
-func getNode(req *restful.Request, resp *restful.Response) {
+func (this NodeService) listNodes(req *restful.Request, resp *restful.Response) {
+	response, err := this.proxy.Get(req)
+	if err != nil {
+		handleInternalServerError(resp, err)
+	}
 
-}
-
-func listNodes(req *restful.Request, resp *restful.Response) {
-
-}
-
-func updateNode(req *restful.Request, resp *restful.Response) {
-
-}
-
-func deleteNode(req *restful.Request, resp *restful.Response) {
-
+	resp.AddHeader("Content-Type", "application/json")
+	resp.Write(response)
 }
