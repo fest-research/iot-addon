@@ -70,5 +70,8 @@ func (this ServerProxy) Post(req *restful.Request) ([]byte, error) {
 // Remove everything after '?' in url path (FOR TESTS ONLY!)
 func (this ServerProxy) removePathParams(url *url.URL) string {
 	path := url.String()
-	return path[:strings.Index(path, "?")]
+	if strings.Contains(path, "?") {
+		path = path[:strings.Index(path, "?")]
+	}
+	return path
 }
