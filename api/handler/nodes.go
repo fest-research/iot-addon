@@ -37,7 +37,7 @@ func (this NodeService) Register(ws *restful.WebService) {
 	// Watch nodes
 	ws.Route(
 		ws.Method("GET").
-			Path("/nodes").
+			Path("/watch/nodes").
 			To(this.watchNodes).
 			Returns(http.StatusOK, "OK", nil).
 			Writes(nil),

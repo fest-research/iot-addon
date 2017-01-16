@@ -5,6 +5,7 @@ import (
 
 	"github.com/emicklei/go-restful"
 	"github.com/fest-research/IoT-apiserver/api/proxy"
+	"github.com/emicklei/go-restful/log"
 )
 
 type PodService struct {
@@ -28,7 +29,7 @@ func (this PodService) Register(ws *restful.WebService) {
 	// Watch pods
 	ws.Route(
 		ws.Method("GET").
-				Path("/pods").
+				Path("/watch/pods").
 				To(this.watchPods).
 				Returns(http.StatusOK, "OK", nil).
 				Writes(nil),
@@ -46,11 +47,11 @@ func (this PodService) listPods(req *restful.Request, resp *restful.Response) {
 }
 
 func (this PodService) watchPods(req *restful.Request, resp *restful.Response) {
-	response, err := this.proxy.Get(req)
+	res, err := http.Get("http://localhost:8080/api/v1/watch/pods")
 	if err != nil {
-		handleInternalServerError(resp, err)
+		log.Printf("ERROR: %s", err.Error())
+		return
 	}
 
-	resp.AddHeader("Content-Type", "application/json")
-	resp.Write(response)
+	defer res.Body.Close()
 }

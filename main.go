@@ -19,8 +19,8 @@ var (
 )
 
 const (
-	rootPath = "/api/v1"
 	version  = "v1"
+	rootPath = "/api/" + version
 )
 
 func main() {
