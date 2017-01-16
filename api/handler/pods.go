@@ -6,6 +6,7 @@ import (
 	"github.com/fest-research/IoT-apiserver/api/proxy"
 	"k8s.io/client-go/1.5/kubernetes"
 
+	"bufio"
 	"bytes"
 	"fmt"
 	"net/http"
@@ -140,13 +141,26 @@ func (this PodService) watchPods(req *restful.Request, resp *restful.Response) {
 	flusher.Flush()
 
 	resultChan := make(chan string)
-	ticker := time.NewTicker(time.Second)
 	go func(buf chan string) {
-		for {
-			<-ticker.C
-			buf <- fmt.Sprintf("Tick at %s", time.Now().String())
-
+		resp, err := http.Get("http://localhost:8080/api/v1/watch/pods")
+		if err != nil {
+			log.Printf("Error: %s", err.Error())
+			return
 		}
+
+		reader := bufio.NewReader(resp.Body)
+		for {
+			line, err := reader.ReadBytes('\n')
+			if err != nil {
+				log.Printf("Error: %s", err.Error())
+				break
+			}
+
+			log.Printf("Server response: %s", string(line))
+			buf <- bytes.NewBuffer(line).String()
+		}
+
+		resp.Body.Close()
 	}(resultChan)
 
 	buf := &bytes.Buffer{}
