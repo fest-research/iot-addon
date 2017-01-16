@@ -4,6 +4,7 @@ import (
 	"github.com/emicklei/go-restful"
 	"github.com/emicklei/go-restful/log"
 	"github.com/fest-research/IoT-apiserver/api/proxy"
+	"k8s.io/client-go/1.5/kubernetes"
 
 	"bytes"
 	"fmt"
@@ -35,11 +36,12 @@ func (w *realTimeoutFactory) TimeoutCh() (<-chan time.Time, func() bool) {
 }
 
 type PodService struct {
-	proxy proxy.IServerProxy
+	clientSet *kubernetes.Clientset
+	proxy     proxy.IServerProxy
 }
 
-func NewPodService(proxy proxy.IServerProxy) PodService {
-	return PodService{proxy: proxy}
+func NewPodService(clientSet *kubernetes.Clientset, proxy proxy.IServerProxy) PodService {
+	return PodService{clientSet: clientSet, proxy: proxy}
 }
 
 func (this PodService) Register(ws *restful.WebService) {
@@ -110,6 +112,7 @@ func (this PodService) listPods(req *restful.Request, resp *restful.Response) {
 }
 
 func (this PodService) watchPods(req *restful.Request, resp *restful.Response) {
+
 	log.Print("Watch pods called")
 
 	cn, ok := resp.ResponseWriter.(http.CloseNotifier)
@@ -150,6 +153,7 @@ func (this PodService) watchPods(req *restful.Request, resp *restful.Response) {
 	for {
 		select {
 		case <-cn.CloseNotify():
+			log.Printf("Close notify received")
 			return
 		case <-timeoutCh:
 			return

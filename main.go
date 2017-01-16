@@ -9,6 +9,7 @@ import (
 	"github.com/emicklei/go-restful"
 	"github.com/fest-research/IoT-apiserver/api"
 	"github.com/fest-research/IoT-apiserver/api/handler"
+	"github.com/fest-research/IoT-apiserver/api/kube_client"
 	"github.com/fest-research/IoT-apiserver/api/proxy"
 	"github.com/spf13/pflag"
 )
@@ -16,6 +17,7 @@ import (
 var (
 	argApiserverHost = pflag.String("api-server", "", "Kubernetes api server address")
 	argPort          = pflag.Int("port", 8083, "Port to listen on")
+	argKubeconfig    = pflag.String("kubeconfig", "./kubeconfig.yaml", "absolute path to the kubeconfig file")
 )
 
 const (
@@ -29,8 +31,17 @@ func main() {
 
 	log.Printf("Using HTTP port: %d", *argPort)
 	if *argApiserverHost == "" {
+
 		log.Fatal("Parameter 'api-server' not defined. Please define kubernetes apiserver address.")
 	}
+
+	if *argKubeconfig == "" {
+		log.Fatal("Parameter 'kubeconfig' not defined." +
+			" Please provide a 'kubeconfig' file to access the kubernetes apiserver.")
+	}
+
+	// Create a client for the kubernetes apis
+	clientset := kube_client.NewClientset(*argKubeconfig)
 
 	// Create api installer
 	installer := api.APIInstaller{Root: rootPath, Version: version}
@@ -39,7 +50,7 @@ func main() {
 	proxy := proxy.NewServerProxy(*argApiserverHost)
 
 	// Create service factory
-	serviceFactory := handler.NewServiceFactory(proxy)
+	serviceFactory := handler.NewServiceFactory(clientset, proxy)
 
 	ws := installer.NewWebService()
 	installer.Install(ws, serviceFactory.GetRegisteredServices())

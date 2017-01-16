@@ -1,18 +1,22 @@
 package handler
 
-import "github.com/fest-research/IoT-apiserver/api/proxy"
+import (
+	"github.com/fest-research/IoT-apiserver/api/proxy"
+	"k8s.io/client-go/1.5/kubernetes"
+)
 
 type IServiceFactory interface {
 	GetRegisteredServices() []IService
 }
 
 type ServiceFactory struct {
-	proxy    proxy.IServerProxy
-	services []IService
+	clientSet *kubernetes.Clientset
+	proxy     proxy.IServerProxy
+	services  []IService
 }
 
-func NewServiceFactory(proxy proxy.IServerProxy) *ServiceFactory {
-	factory := &ServiceFactory{proxy: proxy, services: make([]IService, 0)}
+func NewServiceFactory(clientSet *kubernetes.Clientset, proxy proxy.IServerProxy) *ServiceFactory {
+	factory := &ServiceFactory{clientSet: clientSet, proxy: proxy, services: make([]IService, 0)}
 	factory.init()
 
 	return factory
@@ -30,7 +34,7 @@ func (this *ServiceFactory) init() {
 	this.registerService(NewNodeService(this.proxy))
 
 	// Pod service
-	this.registerService(NewPodService(this.proxy))
+	this.registerService(NewPodService(this.clientSet, this.proxy))
 
 	// Kubernetes service
 	this.registerService(NewKubeService(this.proxy))
