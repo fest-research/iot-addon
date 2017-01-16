@@ -127,11 +127,11 @@ func (this PodService) watchPods(req *restful.Request, resp *restful.Response) {
 	}
 
 	// ensure the connection times out
-	timeoutFactory := &realTimeoutFactory{5}
+	timeoutFactory := &realTimeoutFactory{timeout: 30 * time.Second}
 	timeoutCh, cleanup := timeoutFactory.TimeoutCh()
 	defer cleanup()
 
-	resp.Header().Set("Content-Type", "application/json;watch=stream")
+	resp.Header().Set("Content-Type", "application/json")
 	resp.Header().Set("Transfer-Encoding", "chunked")
 	resp.WriteHeader(http.StatusOK)
 	flusher.Flush()
