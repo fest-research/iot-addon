@@ -1,9 +1,10 @@
 package handler
 
 import (
+	"net/http"
+
 	"github.com/emicklei/go-restful"
 	"github.com/emicklei/go-restful/log"
-	"net/http"
 )
 
 func handleInternalServerError(response *restful.Response, err error) {

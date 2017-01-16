@@ -15,7 +15,7 @@ import (
 
 var (
 	argApiserverHost = pflag.String("api-server", "", "Kubernetes api server address")
-	argPort   = pflag.Int("port", 8083, "Port to listen on")
+	argPort          = pflag.Int("port", 8083, "Port to listen on")
 )
 
 const (

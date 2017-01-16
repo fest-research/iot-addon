@@ -1,12 +1,13 @@
 package proxy
 
 import (
+	"io/ioutil"
+	"net/http"
+	"net/url"
+	"strings"
+
 	"github.com/emicklei/go-restful"
 	"github.com/emicklei/go-restful/log"
-	"net/http"
-	"io/ioutil"
-	"strings"
-	"net/url"
 )
 
 type IServerProxy interface {
@@ -24,7 +25,7 @@ func NewServerProxy(address string) ServerProxy {
 
 func (this ServerProxy) Get(req *restful.Request) ([]byte, error) {
 	requestPath := this.serverAddress + this.removePathParams(req.Request.URL)
-	log.Printf("Making call to server(%s): %s", this.serverAddress, requestPath)
+	log.Printf("[Proxy] Making call to server(%s): %s", this.serverAddress, requestPath)
 
 	r, err := http.Get(requestPath)
 	if err != nil {
@@ -38,7 +39,9 @@ func (this ServerProxy) Get(req *restful.Request) ([]byte, error) {
 		return nil, err
 	}
 
-	log.Printf("Server(%s) response: %s", this.serverAddress, string(body))
+	log.Printf("[Response filter] (%s) response: %s", this.serverAddress, string(body))
+	log.Printf("[Response filter] (%s) content type: %s", this.serverAddress, r.Header.Get("Content-Type"))
+	log.Printf("[Response filter] (%s) transfer encoding: %s", this.serverAddress, r.Header.Get("Transfer-Encoding"))
 	return body, nil
 }
 
@@ -58,7 +61,9 @@ func (this ServerProxy) Post(req *restful.Request) ([]byte, error) {
 		return nil, err
 	}
 
-	log.Printf("Server(%s) response: %s", this.serverAddress, string(body))
+	log.Printf("[Response filter] (%s) response: %s", this.serverAddress, string(body))
+	log.Printf("[Response filter] (%s) content type: %s", this.serverAddress, r.Header.Get("Content-Type"))
+	log.Printf("[Response filter] (%s) transfer encoding: %s", this.serverAddress, r.Header.Get("Transfer-Encoding"))
 	return body, nil
 }
 

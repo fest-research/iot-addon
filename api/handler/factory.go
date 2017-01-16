@@ -7,7 +7,7 @@ type IServiceFactory interface {
 }
 
 type ServiceFactory struct {
-	proxy proxy.IServerProxy
+	proxy    proxy.IServerProxy
 	services []IService
 }
 

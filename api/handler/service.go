@@ -1,9 +1,10 @@
 package handler
 
 import (
+	"net/http"
+
 	"github.com/emicklei/go-restful"
 	"github.com/fest-research/IoT-apiserver/api/proxy"
-	"net/http"
 )
 
 type KubeService struct {
