@@ -5,6 +5,8 @@ import (
 	"github.com/emicklei/go-restful/log"
 	"github.com/fest-research/IoT-apiserver/api/proxy"
 
+	"bytes"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -110,56 +112,61 @@ func (this PodService) listPods(req *restful.Request, resp *restful.Response) {
 func (this PodService) watchPods(req *restful.Request, resp *restful.Response) {
 	log.Print("Watch pods called")
 
+	cn, ok := resp.ResponseWriter.(http.CloseNotifier)
+	if !ok {
+		err := fmt.Errorf("unable to start watch - can't get http.CloseNotifier: %#v", resp.ResponseWriter)
+		handleInternalServerError(resp, err)
+		return
+	}
+
+	flusher, ok := resp.ResponseWriter.(http.Flusher)
+	if !ok {
+		err := fmt.Errorf("unable to start watch - can't get http.Flusher: %#v", resp.ResponseWriter)
+		handleInternalServerError(resp, err)
+		return
+	}
+
 	// ensure the connection times out
-	//timeoutFactory := &realTimeoutFactory{5}
-	//timeoutCh, cleanup := timeoutFactory.TimeoutCh()
-	//defer cleanup()
-	//
-	//resp.Header().Set("Content-Type", "application/json;watch=stream")
-	//resp.Header().Set("Transfer-Encoding", "chunked")
-	//resp.WriteHeader(http.StatusOK)
-	//
-	//var unknown runtime.Unknown
-	//internalEvent := &metav1.InternalEvent{}
-	//buf := &bytes.Buffer{}
-	//ch := s.Watching.ResultChan()
-	//for {
-	//	select {
-	//	case <-cn.CloseNotify():
-	//		return
-	//	case <-timeoutCh:
-	//		return
-	//	case event, ok := <-ch:
-	//		if !ok {
-	//			// End of results.
-	//			return
-	//		}
-	//
-	//		obj := event.Object
-	//		s.Fixup(obj)
-	//		if err := s.EmbeddedEncoder.Encode(obj, buf); err != nil {
-	//			// unexpected error
-	//			utilruntime.HandleError(fmt.Errorf("unable to encode watch object: %v", err))
-	//			return
-	//		}
-	//
-	//	// ContentType is not required here because we are defaulting to the serializer
-	//	// type
-	//		unknown.Raw = buf.Bytes()
-	//		event.Object = &unknown
-	//
-	//	// the internal event will be versioned by the encoder
-	//		*internalEvent = metav1.InternalEvent(event)
-	//		if err := e.Encode(internalEvent); err != nil {
-	//			utilruntime.HandleError(fmt.Errorf("unable to encode watch object: %v (%#v)", err, e))
-	//			// client disconnect.
-	//			return
-	//		}
-	//		if len(ch) == 0 {
-	//			flusher.Flush()
-	//		}
-	//
-	//		buf.Reset()
-	//	}
-	//}
+	timeoutFactory := &realTimeoutFactory{5}
+	timeoutCh, cleanup := timeoutFactory.TimeoutCh()
+	defer cleanup()
+
+	resp.Header().Set("Content-Type", "application/json;watch=stream")
+	resp.Header().Set("Transfer-Encoding", "chunked")
+	resp.WriteHeader(http.StatusOK)
+	flusher.Flush()
+
+	resultChan := make(chan string)
+	ticker := time.NewTicker(time.Second)
+	go func(buf chan string) {
+		for {
+			<-ticker.C
+			buf <- fmt.Sprintf("Tick at %s", time.Now().String())
+
+		}
+	}(resultChan)
+
+	buf := &bytes.Buffer{}
+	for {
+		select {
+		case <-cn.CloseNotify():
+			return
+		case <-timeoutCh:
+			return
+		case msg, ok := <-resultChan:
+			if !ok {
+				// End of results.
+				return
+			}
+
+			buf.WriteString(msg)
+			resp.Write(buf.Bytes())
+
+			if len(resultChan) == 0 {
+				flusher.Flush()
+			}
+
+			buf.Reset()
+		}
+	}
 }
