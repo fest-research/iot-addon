@@ -11,6 +11,7 @@ import (
 )
 
 type IServerProxy interface {
+	Put(*restful.Request) ([]byte, error)
 	Get(*restful.Request) ([]byte, error)
 	Post(*restful.Request) ([]byte, error)
 }
@@ -25,7 +26,7 @@ func NewServerProxy(address string) ServerProxy {
 
 func (this ServerProxy) Get(req *restful.Request) ([]byte, error) {
 	requestPath := this.serverAddress + this.removePathParams(req.Request.URL)
-	log.Printf("[Proxy] Making call to server(%s): %s", this.serverAddress, requestPath)
+	log.Printf("[Proxy] Making GET call to server (%s): %s", this.serverAddress, requestPath)
 
 	r, err := http.Get(requestPath)
 	if err != nil {
@@ -45,9 +46,30 @@ func (this ServerProxy) Get(req *restful.Request) ([]byte, error) {
 	return body, nil
 }
 
+func (this ServerProxy) Put(req *restful.Request) ([]byte, error) {
+	requestPath := this.serverAddress + this.removePathParams(req.Request.URL)
+	log.Printf("Making PUT to server (%s): %s", this.serverAddress, requestPath)
+	r, err := http.NewRequest("PUT", requestPath, req.Request.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	defer r.Body.Close()
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("[Response filter] (%s) response: %s", requestPath, string(body))
+	log.Printf("[Response filter] (%s) content type: %s", requestPath, r.Header.Get("Content-Type"))
+	log.Printf("[Response filter] (%s) transfer encoding: %s", requestPath, r.Header.Get("Transfer-Encoding"))
+	return body, nil
+}
+
 func (this ServerProxy) Post(req *restful.Request) ([]byte, error) {
 	requestPath := this.serverAddress + this.removePathParams(req.Request.URL)
-	log.Printf("Making post to server(%s): %s", this.serverAddress, requestPath)
+	log.Printf("Making POST to server (%s): %s", this.serverAddress, requestPath)
 
 	r, err := http.Post(requestPath, "application/json", req.Request.Body)
 	if err != nil {
@@ -61,9 +83,9 @@ func (this ServerProxy) Post(req *restful.Request) ([]byte, error) {
 		return nil, err
 	}
 
-	log.Printf("[Response filter] (%s) response: %s", this.serverAddress, string(body))
-	log.Printf("[Response filter] (%s) content type: %s", this.serverAddress, r.Header.Get("Content-Type"))
-	log.Printf("[Response filter] (%s) transfer encoding: %s", this.serverAddress, r.Header.Get("Transfer-Encoding"))
+	log.Printf("[Response filter] (%s) response: %s", requestPath, string(body))
+	log.Printf("[Response filter] (%s) content type: %s", requestPath, r.Header.Get("Content-Type"))
+	log.Printf("[Response filter] (%s) transfer encoding: %s", requestPath, r.Header.Get("Transfer-Encoding"))
 	return body, nil
 }
 
