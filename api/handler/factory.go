@@ -2,7 +2,7 @@ package handler
 
 import (
 	"github.com/fest-research/IoT-apiserver/api/proxy"
-	"k8s.io/client-go/1.5/kubernetes"
+	"k8s.io/client-go/kubernetes"
 )
 
 type IServiceFactory interface {
