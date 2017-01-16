@@ -34,6 +34,25 @@ func (this PodService) Register(ws *restful.WebService) {
 			Returns(http.StatusOK, "OK", nil).
 			Writes(nil),
 	)
+
+	// Get pod
+	ws.Route(
+		ws.Method("GET").
+			Path("/namespaces/{namespace}/pods/{pod}").
+			To(this.getPod).
+			Returns(http.StatusOK, "OK", nil).
+			Writes(nil),
+	)
+}
+
+func (this PodService) getPod(req *restful.Request, resp *restful.Response) {
+	podResponse, err := this.proxy.Get(req)
+	if err != nil {
+		handleInternalServerError(resp, err)
+	}
+
+	resp.AddHeader("Content-Type", "application/json")
+	resp.Write(podResponse)
 }
 
 func (this PodService) listPods(req *restful.Request, resp *restful.Response) {

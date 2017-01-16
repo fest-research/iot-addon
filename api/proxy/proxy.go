@@ -39,9 +39,9 @@ func (this ServerProxy) Get(req *restful.Request) ([]byte, error) {
 		return nil, err
 	}
 
-	log.Printf("[Response filter] (%s) response: %s", this.serverAddress, string(body))
-	log.Printf("[Response filter] (%s) content type: %s", this.serverAddress, r.Header.Get("Content-Type"))
-	log.Printf("[Response filter] (%s) transfer encoding: %s", this.serverAddress, r.Header.Get("Transfer-Encoding"))
+	log.Printf("[Response filter] (%s) response: %s", requestPath, string(body))
+	log.Printf("[Response filter] (%s) content type: %s", requestPath, r.Header.Get("Content-Type"))
+	log.Printf("[Response filter] (%s) transfer encoding: %s", requestPath, r.Header.Get("Transfer-Encoding"))
 	return body, nil
 }
 
