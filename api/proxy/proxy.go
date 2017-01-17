@@ -51,8 +51,14 @@ func (this ServerProxy) Get(req *restful.Request) ([]byte, error) {
 func (this ServerProxy) Put(req *restful.Request) ([]byte, error) {
 	requestPath := this.serverAddress + this.removePathParams(req.Request.URL)
 
-	fmt.Printf("\n[Proxy] PUT Request (%s)\n", requestPath)
-	r, err := http.NewRequest("PUT", requestPath, req.Request.Body)
+	defer req.Request.Body.Close()
+	reqBody, err := ioutil.ReadAll(req.Request.Body)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("\n[Proxy] PUT Request (%s): %s\n", requestPath, string(reqBody))
+
+	r, err := http.NewRequest("PUT", requestPath, bytes.NewReader(reqBody))
 	if err != nil {
 		return nil, err
 	}
