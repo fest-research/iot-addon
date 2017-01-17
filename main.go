@@ -9,8 +9,8 @@ import (
 	"github.com/emicklei/go-restful"
 	"github.com/fest-research/IoT-apiserver/api"
 	"github.com/fest-research/IoT-apiserver/api/handler"
-	"github.com/fest-research/IoT-apiserver/api/kube_client"
 	"github.com/fest-research/IoT-apiserver/api/proxy"
+	kube "github.com/fest-research/IoT-apiserver/kubernetes"
 	"github.com/spf13/pflag"
 )
 
@@ -41,7 +41,7 @@ func main() {
 	}
 
 	// Create a client for the kubernetes apis
-	clientset := kube_client.NewClientset(*argKubeconfig)
+	clientset := kube.NewClientset(*argKubeconfig)
 
 	// Create api installer
 	installer := api.APIInstaller{Root: rootPath, Version: version}
