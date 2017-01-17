@@ -1,0 +1,7 @@
+apiVersion: extensions/v1beta1
+kind: ThirdPartyResource
+metadata:
+  name: iot-pod.fujitsu.com
+description: "An api definition for the IotPod resources."
+versions:
+- name: v1

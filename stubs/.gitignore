@@ -1,1 +1,3 @@
 *.yaml
+!iot-pod.yaml
+!iot-pod-api.yaml
