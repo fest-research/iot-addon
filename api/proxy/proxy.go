@@ -7,7 +7,9 @@ import (
 	"strings"
 
 	"github.com/emicklei/go-restful"
-	"github.com/emicklei/go-restful/log"
+	//"github.com/emicklei/go-restful/log"
+	"fmt"
+	"bytes"
 )
 
 type IServerProxy interface {
@@ -26,7 +28,7 @@ func NewServerProxy(address string) ServerProxy {
 
 func (this ServerProxy) Get(req *restful.Request) ([]byte, error) {
 	requestPath := this.serverAddress + this.removePathParams(req.Request.URL)
-	log.Printf("[Proxy] Making GET call to server (%s): %s", this.serverAddress, requestPath)
+	fmt.Printf("\n[Proxy] GET Request (%s)\n", requestPath)
 
 	r, err := http.Get(requestPath)
 	if err != nil {
@@ -40,15 +42,16 @@ func (this ServerProxy) Get(req *restful.Request) ([]byte, error) {
 		return nil, err
 	}
 
-	log.Printf("[Response filter] (%s) response: %s", requestPath, string(body))
-	log.Printf("[Response filter] (%s) content type: %s", requestPath, r.Header.Get("Content-Type"))
-	log.Printf("[Response filter] (%s) transfer encoding: %s", requestPath, r.Header.Get("Transfer-Encoding"))
+	fmt.Printf("[Proxy] GET Response (%s): %s\n", requestPath, string(body))
+	//log.Printf("[Proxy GET] Response (%s) content type: %s", requestPath, r.Header.Get("Content-Type"))
+	//log.Printf("[Proxy GET] Response (%s) transfer encoding: %s", requestPath, r.Header.Get("Transfer-Encoding"))
 	return body, nil
 }
 
 func (this ServerProxy) Put(req *restful.Request) ([]byte, error) {
 	requestPath := this.serverAddress + this.removePathParams(req.Request.URL)
-	log.Printf("Making PUT to server (%s): %s", this.serverAddress, requestPath)
+
+	fmt.Printf("\n[Proxy] PUT Request (%s)\n", requestPath)
 	r, err := http.NewRequest("PUT", requestPath, req.Request.Body)
 	if err != nil {
 		return nil, err
@@ -61,17 +64,23 @@ func (this ServerProxy) Put(req *restful.Request) ([]byte, error) {
 		return nil, err
 	}
 
-	log.Printf("[Response filter] (%s) response: %s", requestPath, string(body))
-	log.Printf("[Response filter] (%s) content type: %s", requestPath, r.Header.Get("Content-Type"))
-	log.Printf("[Response filter] (%s) transfer encoding: %s", requestPath, r.Header.Get("Transfer-Encoding"))
+	fmt.Printf("[Proxy] PUT Response (%s): %s\n", requestPath, string(body))
+	//log.Printf("[Response filter] (%s) content type: %s", requestPath, r.Header.Get("Content-Type"))
+	//log.Printf("[Response filter] (%s) transfer encoding: %s", requestPath, r.Header.Get("Transfer-Encoding"))
 	return body, nil
 }
 
 func (this ServerProxy) Post(req *restful.Request) ([]byte, error) {
 	requestPath := this.serverAddress + this.removePathParams(req.Request.URL)
-	log.Printf("Making POST to server (%s): %s", this.serverAddress, requestPath)
 
-	r, err := http.Post(requestPath, "application/json", req.Request.Body)
+	defer req.Request.Body.Close()
+	reqBody, err := ioutil.ReadAll(req.Request.Body)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("\n[Proxy] POST Request (%s): %s", requestPath, string(reqBody))
+
+	r, err := http.Post(requestPath, "application/json", bytes.NewReader(reqBody))
 	if err != nil {
 		return nil, err
 	}
@@ -83,9 +92,9 @@ func (this ServerProxy) Post(req *restful.Request) ([]byte, error) {
 		return nil, err
 	}
 
-	log.Printf("[Response filter] (%s) response: %s", requestPath, string(body))
-	log.Printf("[Response filter] (%s) content type: %s", requestPath, r.Header.Get("Content-Type"))
-	log.Printf("[Response filter] (%s) transfer encoding: %s", requestPath, r.Header.Get("Transfer-Encoding"))
+	fmt.Printf("[Proxy] POST Response (%s): %s\n", requestPath, string(body))
+	//log.Printf("[Proxy] POST Response (%s) content type: %s", requestPath, r.Header.Get("Content-Type"))
+	//log.Printf("[Proxy] POST Response (%s) transfer encoding: %s", requestPath, r.Header.Get("Transfer-Encoding"))
 	return body, nil
 }
 
