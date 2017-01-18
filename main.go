@@ -7,10 +7,10 @@ import (
 	"net/http"
 
 	"github.com/emicklei/go-restful"
-	"github.com/fest-research/IoT-apiserver/api"
-	"github.com/fest-research/IoT-apiserver/api/handler"
-	"github.com/fest-research/IoT-apiserver/api/proxy"
-	kube "github.com/fest-research/IoT-apiserver/kubernetes"
+	"github.com/fest-research/IoT-apiserver/pkg/apiserver/api"
+	"github.com/fest-research/IoT-apiserver/pkg/apiserver/api/handler"
+	"github.com/fest-research/IoT-apiserver/pkg/apiserver/proxy"
+	kube "github.com/fest-research/IoT-apiserver/pkg/kubernetes"
 	"github.com/spf13/pflag"
 )
 

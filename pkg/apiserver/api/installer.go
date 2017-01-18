@@ -2,8 +2,8 @@ package api
 
 import (
 	restful "github.com/emicklei/go-restful"
-	//"github.com/emicklei/go-restful/log"
-	"github.com/fest-research/IoT-apiserver/api/handler"
+	"github.com/emicklei/go-restful/log"
+	"github.com/fest-research/IoT-apiserver/pkg/apiserver/api/handler"
 )
 
 // APIInstaller installs the APIs in the server
@@ -27,9 +27,7 @@ func (installer *APIInstaller) Install(ws *restful.WebService, services []handle
 }
 
 func logPath(req *restful.Request, res *restful.Response, chain *restful.FilterChain) {
-	//log.Printf("[Request filter] method: %s ", req.Request.Method)
-	//log.Printf("[Request filter] path: %s", req.Request.URL.String())
-	//log.Printf("[Request filter] content type: %s", req.HeaderParameter("Content-Type"))
-	//log.Printf("[Request filter] transfer encoding: %s", req.HeaderParameter("Transfer-Encoding"))
+	log.Printf("[Request filter] method: %s ", req.Request.Method)
+	log.Printf("[Request filter] path: %s", req.Request.URL.String())
 	chain.ProcessFilter(req, res)
 }

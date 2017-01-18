@@ -1,8 +1,10 @@
 package handler
 
 import (
-	"github.com/fest-research/IoT-apiserver/api/proxy"
+	"github.com/fest-research/IoT-apiserver/pkg/apiserver/proxy"
+
 	"k8s.io/client-go/kubernetes"
+	"github.com/fest-research/IoT-apiserver/pkg/apiserver/controller"
 )
 
 type IServiceFactory interface {
@@ -34,7 +36,7 @@ func (this *ServiceFactory) init() {
 	this.registerService(NewNodeService(this.proxy))
 
 	// Pod service
-	this.registerService(NewPodService(this.clientSet, this.proxy))
+	this.registerService(NewPodService(this.clientSet, this.proxy, controller.NewPodController()))
 
 	// Kubernetes service
 	this.registerService(NewKubeService(this.proxy))

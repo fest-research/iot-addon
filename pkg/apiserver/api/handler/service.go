@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/emicklei/go-restful"
-	"github.com/fest-research/IoT-apiserver/api/proxy"
+	"github.com/fest-research/IoT-apiserver/pkg/apiserver/proxy"
 )
 
 type KubeService struct {

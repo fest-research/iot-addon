@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/emicklei/go-restful"
-	"github.com/fest-research/IoT-apiserver/api/proxy"
+	"github.com/fest-research/IoT-apiserver/pkg/apiserver/proxy"
 )
 
 type NodeService struct {
@@ -69,7 +69,6 @@ func (this NodeService) listNodes(req *restful.Request, resp *restful.Response) 
 	if err != nil {
 		handleInternalServerError(resp, err)
 	}
-
 	resp.AddHeader("Content-Type", "application/json")
 	resp.Write(response)
 }

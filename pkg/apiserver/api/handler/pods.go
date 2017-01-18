@@ -1,16 +1,15 @@
 package handler
 
 import (
-	"github.com/emicklei/go-restful"
-	"github.com/emicklei/go-restful/log"
-	"github.com/fest-research/IoT-apiserver/api/proxy"
-	"k8s.io/client-go/kubernetes"
-
-	"bufio"
-	"bytes"
-	"fmt"
 	"net/http"
 	"time"
+
+	"k8s.io/client-go/kubernetes"
+
+	"github.com/emicklei/go-restful"
+	"github.com/fest-research/IoT-apiserver/pkg/apiserver/controller"
+	"github.com/fest-research/IoT-apiserver/pkg/apiserver/proxy"
+	"github.com/fest-research/IoT-apiserver/pkg/apiserver/watch"
 )
 
 // nothing will ever be sent down this channel
@@ -37,12 +36,14 @@ func (w *realTimeoutFactory) TimeoutCh() (<-chan time.Time, func() bool) {
 }
 
 type PodService struct {
-	clientSet *kubernetes.Clientset
-	proxy     proxy.IServerProxy
+	clientSet     *kubernetes.Clientset
+	proxy         proxy.IServerProxy
+	podController *controller.PodController
 }
 
-func NewPodService(clientSet *kubernetes.Clientset, proxy proxy.IServerProxy) PodService {
-	return PodService{clientSet: clientSet, proxy: proxy}
+func NewPodService(clientSet *kubernetes.Clientset, proxy proxy.IServerProxy,
+	controller *controller.PodController) PodService {
+	return PodService{clientSet: clientSet, proxy: proxy, podController: controller}
 }
 
 func (this PodService) Register(ws *restful.WebService) {
@@ -113,78 +114,9 @@ func (this PodService) listPods(req *restful.Request, resp *restful.Response) {
 }
 
 func (this PodService) watchPods(req *restful.Request, resp *restful.Response) {
+	watcher := this.proxy.Watch(req)
+	notifier := watch.NewNotifier()
 
-	log.Print("Watch pods called")
-
-	cn, ok := resp.ResponseWriter.(http.CloseNotifier)
-	if !ok {
-		err := fmt.Errorf("unable to start watch - can't get http.CloseNotifier: %#v", resp.ResponseWriter)
-		handleInternalServerError(resp, err)
-		return
-	}
-
-	flusher, ok := resp.ResponseWriter.(http.Flusher)
-	if !ok {
-		err := fmt.Errorf("unable to start watch - can't get http.Flusher: %#v", resp.ResponseWriter)
-		handleInternalServerError(resp, err)
-		return
-	}
-
-	// ensure the connection times out
-	timeoutFactory := &realTimeoutFactory{timeout: 30 * time.Second}
-	timeoutCh, cleanup := timeoutFactory.TimeoutCh()
-	defer cleanup()
-
-	resp.Header().Set("Content-Type", "application/json")
-	resp.Header().Set("Transfer-Encoding", "chunked")
-	resp.WriteHeader(http.StatusOK)
-	flusher.Flush()
-
-	resultChan := make(chan string)
-	go func(buf chan string) {
-		resp, err := http.Get("http://localhost:8080/api/v1/watch/pods")
-		if err != nil {
-			log.Printf("Error: %s", err.Error())
-			return
-		}
-
-		reader := bufio.NewReader(resp.Body)
-		for {
-			line, err := reader.ReadBytes('\n')
-			if err != nil {
-				log.Printf("Error: %s", err.Error())
-				break
-			}
-
-			log.Printf("Server response: %s", string(line))
-			buf <- bytes.NewBuffer(line).String()
-		}
-
-		resp.Body.Close()
-	}(resultChan)
-
-	buf := &bytes.Buffer{}
-	for {
-		select {
-		case <-cn.CloseNotify():
-			log.Printf("Close notify received")
-			return
-		case <-timeoutCh:
-			return
-		case msg, ok := <-resultChan:
-			if !ok {
-				// End of results.
-				return
-			}
-
-			buf.WriteString(msg)
-			resp.Write(buf.Bytes())
-
-			if len(resultChan) == 0 {
-				flusher.Flush()
-			}
-
-			buf.Reset()
-		}
-	}
+	notifier.Register(this.podController)
+	notifier.Start(watcher, resp)
 }
