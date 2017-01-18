@@ -17,8 +17,8 @@ limitations under the License.
 package authentication
 
 import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/pkg/api"
-	"k8s.io/client-go/pkg/api/unversioned"
 )
 
 const (
@@ -42,7 +42,7 @@ const (
 
 // TokenReview attempts to authenticate a token to a known user.
 type TokenReview struct {
-	unversioned.TypeMeta
+	metav1.TypeMeta
 	// ObjectMeta fulfills the meta.ObjectMetaAccessor interface so that the stock
 	// REST handler paths work
 	api.ObjectMeta

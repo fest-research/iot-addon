@@ -1,5 +1,5 @@
 /*
-Copyright 2016 The Kubernetes Authors.
+Copyright 2017 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,9 +17,10 @@ limitations under the License.
 package v1
 
 import (
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	watch "k8s.io/apimachinery/pkg/watch"
 	api "k8s.io/client-go/pkg/api"
 	v1 "k8s.io/client-go/pkg/api/v1"
-	watch "k8s.io/client-go/pkg/watch"
 	rest "k8s.io/client-go/rest"
 )
 
@@ -36,7 +37,7 @@ type ServiceInterface interface {
 	UpdateStatus(*v1.Service) (*v1.Service, error)
 	Delete(name string, options *v1.DeleteOptions) error
 	DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error
-	Get(name string) (*v1.Service, error)
+	Get(name string, options meta_v1.GetOptions) (*v1.Service, error)
 	List(opts v1.ListOptions) (*v1.ServiceList, error)
 	Watch(opts v1.ListOptions) (watch.Interface, error)
 	Patch(name string, pt api.PatchType, data []byte, subresources ...string) (result *v1.Service, err error)
@@ -82,6 +83,9 @@ func (c *services) Update(service *v1.Service) (result *v1.Service, err error) {
 	return
 }
 
+// UpdateStatus was generated because the type contains a Status member.
+// Add a +genclientstatus=false comment above the type to avoid generating UpdateStatus().
+
 func (c *services) UpdateStatus(service *v1.Service) (result *v1.Service, err error) {
 	result = &v1.Service{}
 	err = c.client.Put().
@@ -118,12 +122,13 @@ func (c *services) DeleteCollection(options *v1.DeleteOptions, listOptions v1.Li
 }
 
 // Get takes name of the service, and returns the corresponding service object, and an error if there is any.
-func (c *services) Get(name string) (result *v1.Service, err error) {
+func (c *services) Get(name string, options meta_v1.GetOptions) (result *v1.Service, err error) {
 	result = &v1.Service{}
 	err = c.client.Get().
 		Namespace(c.ns).
 		Resource("services").
 		Name(name).
+		VersionedParams(&options, api.ParameterCodec).
 		Do().
 		Into(result)
 	return

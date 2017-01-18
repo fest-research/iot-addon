@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	argApiserverHost = pflag.String("api-server", "", "Kubernetes api server address")
+	argApiserverHost = pflag.String("apiserver", "", "Kubernetes api server address")
 	argPort          = pflag.Int("port", 8083, "Port to listen on")
 	argKubeconfig    = pflag.String("kubeconfig", "./kubeconfig.yaml", "absolute path to the kubeconfig file")
 )
@@ -32,7 +32,7 @@ func main() {
 	log.Printf("Using HTTP port: %d", *argPort)
 	if *argApiserverHost == "" {
 
-		log.Fatal("Parameter 'api-server' not defined. Please define kubernetes apiserver address.")
+		log.Fatal("Parameter 'apiserver' not defined. Please define kubernetes apiserver address.")
 	}
 
 	if *argKubeconfig == "" {

@@ -24,15 +24,15 @@ import (
 	"strings"
 	"time"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/conversion"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/selection"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/client-go/pkg/api/resource"
-	"k8s.io/client-go/pkg/api/unversioned"
-	"k8s.io/client-go/pkg/conversion"
 	"k8s.io/client-go/pkg/fields"
-	"k8s.io/client-go/pkg/labels"
-	"k8s.io/client-go/pkg/runtime"
-	"k8s.io/client-go/pkg/selection"
-	"k8s.io/client-go/pkg/types"
-	"k8s.io/client-go/pkg/util/sets"
 
 	"github.com/davecgh/go-spew/spew"
 )
@@ -61,7 +61,7 @@ var Semantic = conversion.EqualitiesOrDie(
 		// Uninitialized quantities are equivalent to 0 quantities.
 		return a.Cmp(b) == 0
 	},
-	func(a, b unversioned.Time) bool {
+	func(a, b metav1.Time) bool {
 		return a.UTC() == b.UTC()
 	},
 	func(a, b labels.Selector) bool {
@@ -397,15 +397,15 @@ func containsAccessMode(modes []PersistentVolumeAccessMode, mode PersistentVolum
 }
 
 // ParseRFC3339 parses an RFC3339 date in either RFC3339Nano or RFC3339 format.
-func ParseRFC3339(s string, nowFn func() unversioned.Time) (unversioned.Time, error) {
+func ParseRFC3339(s string, nowFn func() metav1.Time) (metav1.Time, error) {
 	if t, timeErr := time.Parse(time.RFC3339Nano, s); timeErr == nil {
-		return unversioned.Time{Time: t}, nil
+		return metav1.Time{Time: t}, nil
 	}
 	t, err := time.Parse(time.RFC3339, s)
 	if err != nil {
-		return unversioned.Time{}, err
+		return metav1.Time{}, err
 	}
-	return unversioned.Time{Time: t}, nil
+	return metav1.Time{Time: t}, nil
 }
 
 // NodeSelectorRequirementsAsSelector converts the []NodeSelectorRequirement api type into a struct that implements
@@ -485,20 +485,6 @@ const (
 	// will fail to launch.
 	UnsafeSysctlsPodAnnotationKey string = "security.alpha.kubernetes.io/unsafe-sysctls"
 )
-
-// GetAffinityFromPod gets the json serialized affinity data from Pod.Annotations
-// and converts it to the Affinity type in api.
-func GetAffinityFromPodAnnotations(annotations map[string]string) (*Affinity, error) {
-	if len(annotations) > 0 && annotations[AffinityAnnotationKey] != "" {
-		var affinity Affinity
-		err := json.Unmarshal([]byte(annotations[AffinityAnnotationKey]), &affinity)
-		if err != nil {
-			return nil, err
-		}
-		return &affinity, nil
-	}
-	return nil, nil
-}
 
 // GetTolerationsFromPodAnnotations gets the json serialized tolerations data from Pod.Annotations
 // and converts it to the []Toleration type in api.

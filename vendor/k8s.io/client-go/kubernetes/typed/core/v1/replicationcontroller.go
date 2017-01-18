@@ -1,5 +1,5 @@
 /*
-Copyright 2016 The Kubernetes Authors.
+Copyright 2017 The Kubernetes Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,9 +17,10 @@ limitations under the License.
 package v1
 
 import (
+	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	watch "k8s.io/apimachinery/pkg/watch"
 	api "k8s.io/client-go/pkg/api"
 	v1 "k8s.io/client-go/pkg/api/v1"
-	watch "k8s.io/client-go/pkg/watch"
 	rest "k8s.io/client-go/rest"
 )
 
@@ -36,7 +37,7 @@ type ReplicationControllerInterface interface {
 	UpdateStatus(*v1.ReplicationController) (*v1.ReplicationController, error)
 	Delete(name string, options *v1.DeleteOptions) error
 	DeleteCollection(options *v1.DeleteOptions, listOptions v1.ListOptions) error
-	Get(name string) (*v1.ReplicationController, error)
+	Get(name string, options meta_v1.GetOptions) (*v1.ReplicationController, error)
 	List(opts v1.ListOptions) (*v1.ReplicationControllerList, error)
 	Watch(opts v1.ListOptions) (watch.Interface, error)
 	Patch(name string, pt api.PatchType, data []byte, subresources ...string) (result *v1.ReplicationController, err error)
@@ -82,6 +83,9 @@ func (c *replicationControllers) Update(replicationController *v1.ReplicationCon
 	return
 }
 
+// UpdateStatus was generated because the type contains a Status member.
+// Add a +genclientstatus=false comment above the type to avoid generating UpdateStatus().
+
 func (c *replicationControllers) UpdateStatus(replicationController *v1.ReplicationController) (result *v1.ReplicationController, err error) {
 	result = &v1.ReplicationController{}
 	err = c.client.Put().
@@ -118,12 +122,13 @@ func (c *replicationControllers) DeleteCollection(options *v1.DeleteOptions, lis
 }
 
 // Get takes name of the replicationController, and returns the corresponding replicationController object, and an error if there is any.
-func (c *replicationControllers) Get(name string) (result *v1.ReplicationController, err error) {
+func (c *replicationControllers) Get(name string, options meta_v1.GetOptions) (result *v1.ReplicationController, err error) {
 	result = &v1.ReplicationController{}
 	err = c.client.Get().
 		Namespace(c.ns).
 		Resource("replicationcontrollers").
 		Name(name).
+		VersionedParams(&options, api.ParameterCodec).
 		Do().
 		Into(result)
 	return
