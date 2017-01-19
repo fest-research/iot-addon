@@ -8,6 +8,7 @@ import (
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
 	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/pkg/api"
 )
 
 type PodService struct {
@@ -61,6 +62,7 @@ func (this PodService) updateStatus(req *restful.Request, resp *restful.Response
 	updateResponse, err := this.proxy.Put(req, v1.APIResource{})
 	if err != nil {
 		handleInternalServerError(resp, err)
+		return
 	}
 	resp.AddHeader("Content-Type", "application/json")
 	resp.Write(updateResponse)
@@ -70,6 +72,7 @@ func (this PodService) getPod(req *restful.Request, resp *restful.Response) {
 	podResponse, err := this.proxy.Get(req, v1.APIResource{})
 	if err != nil {
 		handleInternalServerError(resp, err)
+		return
 	}
 
 	resp.AddHeader("Content-Type", "application/json")
@@ -80,6 +83,7 @@ func (this PodService) listPods(req *restful.Request, resp *restful.Response) {
 	response, err := this.proxy.List(req, v1.APIResourceList{})
 	if err != nil {
 		handleInternalServerError(resp, err)
+		return
 	}
 
 	resp.AddHeader("Content-Type", "application/json")
@@ -87,9 +91,21 @@ func (this PodService) listPods(req *restful.Request, resp *restful.Response) {
 }
 
 func (this PodService) watchPods(req *restful.Request, resp *restful.Response) {
-	watcher := this.proxy.Watch(req, v1.APIResource{})
+	watcher, err := this.proxy.Watch(&v1.APIResource{Name: "iotpods", Namespaced: true},
+		&api.ListOptions{})
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
+
+	defer watcher.Stop()
+
 	notifier := watch.NewNotifier()
 
 	notifier.Register(this.podController)
-	notifier.Start(watcher, resp)
+	err = notifier.Start(watcher, resp)
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
 }

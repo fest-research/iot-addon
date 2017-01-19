@@ -5,6 +5,8 @@ import (
 	"reflect"
 
 	"github.com/emicklei/go-restful/log"
+	"k8s.io/apimachinery/pkg/watch"
+	"github.com/fest-research/iot-addon/pkg/api/v1"
 )
 
 type Controller interface {
@@ -17,7 +19,7 @@ func (this PodController) Transform(in interface{}) (interface{}, error) {
 	log.Print("PodController - Transform()")
 
 	switch in.(type) {
-	case string:
+	case watch.Event:
 		// TODO: do some transformation
 		return in, nil
 	default:
