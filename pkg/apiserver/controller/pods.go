@@ -36,6 +36,8 @@ func (this PodController) transform(event watch.Event) watch.Event {
 	iotPod := event.Object.(*v1.IotPod)
 	pod := kubeapi.Pod{}
 
+	pod.Kind = "Pod"
+	pod.APIVersion = "v1"
 	pod.Spec = iotPod.Spec
 	pod.ObjectMeta = iotPod.Metadata
 	pod.Status = iotPod.Status
