@@ -41,9 +41,9 @@ func main() {
 	}
 
 	// Get config object
-	config := kube.GetConfig(*argApiserverHost, *argKubeconfig)
 
 	// Create a client for the kubernetes apis
+	config := kube.NewClientConfig(*argApiserverHost, *argKubeconfig)
 	kubeClient := kube.NewDynamicClient(config)
 
 	// Create api installer
