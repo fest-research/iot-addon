@@ -131,7 +131,6 @@ func (this ServerProxy) Post(req *restful.Request, resource v1.APIResource) ([]b
 	return body, nil
 }
 
-
 func (this ServerProxy) Patch(req *restful.Request, resource v1.APIResource) ([]byte, error) {
 	requestPath := this.serverAddress + this.removePathParams(req.Request.URL)
 
@@ -157,7 +156,6 @@ func (this ServerProxy) Patch(req *restful.Request, resource v1.APIResource) ([]
 	log.Printf("[Proxy] PATCH Response (%s): %s", requestPath, string(body))
 	return body, nil
 }
-
 
 func (this ServerProxy) Watch(req *restful.Request, resource v1.APIResource) watch.Watcher {
 	// TODO: replace this with a call to the kube-client

@@ -8,6 +8,7 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/pkg/api"
+	"log"
 )
 
 var iotDeviceResource = v1.APIResource{
@@ -36,13 +37,13 @@ func WatchIotDevices(client *dynamic.Client) {
 		iotDevice, _ := e.Object.(*types.IotDevice)
 
 		if e.Type == watch.Added {
-			fmt.Printf("Added %s\n", iotDevice.Metadata.SelfLink)
+			log.Printf("Added %s\n", iotDevice.Metadata.SelfLink)
 		} else if e.Type == watch.Modified {
-			fmt.Printf("Modified %s\n", iotDevice.Metadata.SelfLink)
+			log.Printf("Modified %s\n", iotDevice.Metadata.SelfLink)
 		} else if e.Type == watch.Deleted {
-			fmt.Printf("Deleted %s\n", iotDevice.Metadata.SelfLink)
+			log.Printf("Deleted %s\n", iotDevice.Metadata.SelfLink)
 		} else if e.Type == watch.Error {
-			fmt.Println("Error")
+			log.Println("Error")
 			break
 		}
 	}

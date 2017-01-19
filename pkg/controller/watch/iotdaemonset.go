@@ -2,12 +2,13 @@ package watch
 
 import (
 	"fmt"
-
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
+	"github.com/fest-research/iot-addon/pkg/kubernetes"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/pkg/api"
+	"log"
 )
 
 var iotDaemonSetResource = v1.APIResource{
@@ -36,13 +37,16 @@ func WatchIotDaemonSet(client *dynamic.Client) {
 		iotDaemonSet, _ := e.Object.(*types.IotDaemonSet)
 
 		if e.Type == watch.Added {
-			fmt.Printf("Added %s\n", iotDaemonSet.Metadata.SelfLink)
+			log.Printf("Added %s\n", iotDaemonSet.Metadata.SelfLink)
+			pod, _ := kubernetes.GetIotPod(*iotDaemonSet)
+			log.Println(pod)
+
 		} else if e.Type == watch.Modified {
-			fmt.Printf("Modified %s\n", iotDaemonSet.Metadata.SelfLink)
+			log.Printf("Modified %s\n", iotDaemonSet.Metadata.SelfLink)
 		} else if e.Type == watch.Deleted {
-			fmt.Printf("Deleted %s\n", iotDaemonSet.Metadata.SelfLink)
+			log.Printf("Deleted %s\n", iotDaemonSet.Metadata.SelfLink)
 		} else if e.Type == watch.Error {
-			fmt.Println("Error")
+			log.Println("Error")
 			break
 		}
 	}

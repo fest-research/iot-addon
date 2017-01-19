@@ -237,6 +237,12 @@
 			"revisionTime": "2017-01-11T18:16:59Z"
 		},
 		{
+			"checksumSHA1": "Se195FlZ160eaEk/uVx4KdTPSxU=",
+			"path": "github.com/pborman/uuid",
+			"revision": "1b00554d822231195d1babd97ff4a781231955c9",
+			"revisionTime": "2017-01-12T15:04:04Z"
+		},
+		{
 			"checksumSHA1": "azL5LwQ46tyRFejgGTvMmiE6vjA=",
 			"path": "github.com/spf13/pflag",
 			"revision": "51268031d79952516489a9f8aa34e9709b98d946",
@@ -1185,5 +1191,5 @@
 			"revisionTime": "2017-01-17T15:19:43Z"
 		}
 	],
-	"rootPath": "github.com/fest-research/IoT-apiserver"
+	"rootPath": "github.com/fest-research/iot-addon"
 }
