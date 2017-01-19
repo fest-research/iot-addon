@@ -47,6 +47,8 @@ func main() {
 
 	go watch.WatchIotDevices(client)
 
+	watch.WatchIotDaemonSet(client)
+
 	for {
 		// Endless loop
 	}
