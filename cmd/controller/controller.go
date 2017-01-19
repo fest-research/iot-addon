@@ -75,6 +75,10 @@ func configureClient(config *rest.Config) {
 				&api.DeleteOptions{},
 				&v1.IotDevice{},
 				&v1.IotDeviceList{},
+				&v1.IotDaemonSet{},
+				&v1.IotDaemonSetList{},
+				&v1.IotPod{},
+				&v1.IotPodList{},
 			)
 			return nil
 		})

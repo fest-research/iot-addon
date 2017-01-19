@@ -30,7 +30,7 @@ func (iotDeviceList *IotDeviceList) GetObjectKind() schema.ObjectKind {
 	return &iotDeviceList.TypeMeta
 }
 
-func (iotDeviceList *IotDeviceList) GetListMeta() v1.List {
+func (iotDeviceList *IotDeviceList) GetListMeta() metav1.List {
 	return &iotDeviceList.Metadata
 }
 
