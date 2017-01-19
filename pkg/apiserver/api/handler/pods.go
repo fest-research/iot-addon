@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/emicklei/go-restful"
+	"github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/apiserver/controller"
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
 	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
-	"github.com/fest-research/iot-addon/pkg/api/v1"
 
 	kubeapi "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/pkg/api"

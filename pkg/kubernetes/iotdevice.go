@@ -12,7 +12,7 @@ import (
 // GetAllDevices returns all IotDevices from selected namespace.
 func GetAllDevices(dynamicClient *dynamic.Client, namespace string) ([]types.IotDevice, error) {
 	devices, err := dynamicClient.Resource(&metav1.APIResource{
-		Name:       "iotdevices",
+		Name:       types.IotDeviceType,
 		Namespaced: namespace != api.NamespaceNone,
 	}, namespace).List(&v1.ListOptions{})
 
@@ -28,7 +28,7 @@ func GetDevice(restClient *rest.RESTClient, name, namespace string) types.IotDev
 	var device types.IotDevice
 
 	restClient.Get().
-		Resource("iotdevices").
+		Resource(types.IotDeviceType).
 		Namespace(namespace).
 		Name(name).
 		Do().

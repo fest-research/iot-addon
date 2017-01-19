@@ -46,7 +46,7 @@ func CreateIotPods(ds types.IotDaemonSet, dynamicClient *dynamic.Client,
 
 		err = restClient.Post().
 			Namespace(ds.Metadata.Namespace).
-			Resource("iotpods").
+			Resource(types.IotPodType).
 			Body(&pod).
 			Do().
 			Into(&newPod)
