@@ -9,7 +9,7 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-func GetAllDevices(dynamicClient *dynamic.Client, namespace string) (types.IotDevice, error) {
+func GetAllDevices(dynamicClient *dynamic.Client, namespace string) ([]types.IotDevice, error) {
 	devices, err := dynamicClient.Resource(&metav1.APIResource{
 		Name:       "iotdevices",
 		Namespaced: namespace != api.NamespaceNone,
@@ -22,7 +22,7 @@ func GetAllDevices(dynamicClient *dynamic.Client, namespace string) (types.IotDe
 	return devices.(*types.IotDeviceList).Items, nil
 }
 
-func GetDevice(restClient *rest.RESTClient, name, namespace string) {
+func GetDevice(restClient *rest.RESTClient, name, namespace string) types.IotDevice {
 	var device types.IotDevice
 
 	restClient.Get().

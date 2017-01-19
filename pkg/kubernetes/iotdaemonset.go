@@ -14,6 +14,6 @@ func GetDaemonSetSelectedDevices(ds types.IotDaemonSet, dynamicClient *dynamic.C
 	} else {
 		return []types.IotDevice{
 			GetDevice(restClient, deviceSelector, ds.Metadata.Namespace),
-		}
+		}, nil
 	}
 }
