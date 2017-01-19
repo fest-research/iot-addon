@@ -1,6 +1,9 @@
 # Kubernetes IoT addon
 IoT addon for Kubernetes clusters.
 
+## Status
+[![Build Status](https://travis-ci.org/fest-research/iot-addon.svg?branch=master)](https://travis-ci.org/fest-research/iot-addon)
+
 ## Setup
 Make sure, that you have valid `$GOPATH` set.
 
@@ -11,19 +14,11 @@ cd $GOPATH/src/github.com/fest-research/
 git clone git@github.com:fest-research/iot-addon.git
 ```
 
-## `apiserver`
-IoT addon API server with minimal coverage of the `kubelet`'s basic dependencies.
+## Usage
+Use following commands to start all modules:
 
-Use following command to run:
 ```
 go run cmd/apiserver/apiserver.go --kubeconfig=<kubeconfig-path> --apiserver=<apiserver-adress>
-```
-
-## `controller`
-IoT addon controller.
-
-Use following command to run:
-```
 go run cmd/controller/controller.go --kubeconfig=<kubeconfig-path> --apiserver=<apiserver-adress>
 ```
 
