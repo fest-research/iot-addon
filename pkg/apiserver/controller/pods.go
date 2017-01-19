@@ -6,7 +6,6 @@ import (
 
 	"github.com/emicklei/go-restful/log"
 	"k8s.io/apimachinery/pkg/watch"
-	"github.com/fest-research/iot-addon/pkg/api/v1"
 )
 
 type Controller interface {
@@ -20,11 +19,17 @@ func (this PodController) Transform(in interface{}) (interface{}, error) {
 
 	switch in.(type) {
 	case watch.Event:
-		// TODO: do some transformation
-		return in, nil
+		return this.transform(in), nil
 	default:
 		return nil, fmt.Errorf("Not supported type: %s", reflect.TypeOf(in))
 	}
+}
+
+func (this PodController) transform(in watch.Event) watch.Event {
+	log.Printf("%v", in)
+	log.Printf("%s", reflect.TypeOf(in.Object))
+
+	return in
 }
 
 func NewPodController() *PodController {
