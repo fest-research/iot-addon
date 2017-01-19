@@ -8,6 +8,7 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/pkg/api"
+	"k8s.io/client-go/rest"
 	"log"
 )
 
@@ -16,8 +17,8 @@ var iotDaemonSetResource = v1.APIResource{
 	Namespaced: true,
 }
 
-func WatchIotDaemonSet(client *dynamic.Client) {
-	watcher, err := client.
+func WatchIotDaemonSet(dynamicClient *dynamic.Client, restClient *rest.RESTClient) {
+	watcher, err := dynamicClient.
 		Resource(&iotDaemonSetResource, api.NamespaceAll).
 		Watch(&api.ListOptions{})
 
@@ -34,17 +35,29 @@ func WatchIotDaemonSet(client *dynamic.Client) {
 			panic(fmt.Sprintf("IotDaemonSet ended early?"))
 		}
 
-		iotDaemonSet, _ := e.Object.(*types.IotDaemonSet)
+		ds, _ := e.Object.(*types.IotDaemonSet)
 
 		if e.Type == watch.Added {
-			log.Printf("Added %s\n", iotDaemonSet.Metadata.SelfLink)
-			pod, _ := kubernetes.GetIotPod(*iotDaemonSet)
-			log.Println(pod)
+			log.Printf("Added %s\n", ds.Metadata.SelfLink)
+			pods, _ := kubernetes.GetIotPods(*ds, dynamicClient, restClient)
+
+			for _, pod := range pods {
+				newPod := types.IotPod{}
+
+				err = restClient.Post().
+					Namespace(ds.Metadata.Namespace).
+					Resource("iotpods").
+					Body(&pod).
+					Do().
+					Into(&newPod)
+
+				log.Println(pod)
+			}
 
 		} else if e.Type == watch.Modified {
-			log.Printf("Modified %s\n", iotDaemonSet.Metadata.SelfLink)
+			log.Printf("Modified %s\n", ds.Metadata.SelfLink)
 		} else if e.Type == watch.Deleted {
-			log.Printf("Deleted %s\n", iotDaemonSet.Metadata.SelfLink)
+			log.Printf("Deleted %s\n", ds.Metadata.SelfLink)
 		} else if e.Type == watch.Error {
 			log.Println("Error")
 			break

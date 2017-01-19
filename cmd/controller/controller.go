@@ -19,8 +19,9 @@ func main() {
 	flag.CommandLine.Parse(make([]string, 0))
 
 	config := kubernetes.NewClientConfig(*apiserverArg, *kubeconfigArg)
-	client := kubernetes.NewDynamicClient(config)
+	dynamicClient := kubernetes.NewDynamicClient(config)
+	restClient := kubernetes.NewRESTClient(config)
 
-	go watch.WatchIotDevices(client)
-	watch.WatchIotDaemonSet(client)
+	go watch.WatchIotDevices(dynamicClient)
+	watch.WatchIotDaemonSet(dynamicClient, restClient)
 }

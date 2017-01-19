@@ -23,6 +23,16 @@ func NewDynamicClient(config *rest.Config) *dynamic.Client {
 	return client
 }
 
+func NewRESTClient(config *rest.Config) *rest.RESTClient {
+	client, err := rest.RESTClientFor(config)
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	return client
+}
+
 func NewClientConfig(apiserver, kubeconfig string) *rest.Config {
 	log.Printf("Creating client config using \"%s\" apiserver and \"%s\" kubeconfig",
 		apiserver, kubeconfig)
