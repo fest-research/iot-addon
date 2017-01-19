@@ -20,6 +20,7 @@ type IServerProxy interface {
 	Get(*restful.Request, v1.APIResource) ([]byte, error)
 	List(*restful.Request, v1.APIResourceList) ([]byte, error)
 	Post(*restful.Request, v1.APIResource) ([]byte, error)
+	Patch(*restful.Request, v1.APIResource) ([]byte, error)
 	Watch(*restful.Request, v1.APIResource) watch.Watcher
 	WatchList(*restful.Request, v1.APIResourceList) watch.Watcher
 }
@@ -129,6 +130,34 @@ func (this ServerProxy) Post(req *restful.Request, resource v1.APIResource) ([]b
 	log.Printf("[Proxy] POST Response (%s): %s", requestPath, string(body))
 	return body, nil
 }
+
+
+func (this ServerProxy) Patch(req *restful.Request, resource v1.APIResource) ([]byte, error) {
+	requestPath := this.serverAddress + this.removePathParams(req.Request.URL)
+
+	defer req.Request.Body.Close()
+	reqBody, err := ioutil.ReadAll(req.Request.Body)
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("[Proxy] PATCH Request (%s): %s", requestPath, string(reqBody))
+
+	r, err := http.NewRequest("PATCH", requestPath, bytes.NewReader(reqBody))
+	if err != nil {
+		return nil, err
+	}
+
+	defer r.Body.Close()
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("[Proxy] PATCH Response (%s): %s", requestPath, string(body))
+	return body, nil
+}
+
 
 func (this ServerProxy) Watch(req *restful.Request, resource v1.APIResource) watch.Watcher {
 	// TODO: replace this with a call to the kube-client

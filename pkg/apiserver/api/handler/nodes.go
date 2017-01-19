@@ -27,6 +27,15 @@ func (this NodeService) Register(ws *restful.WebService) {
 			Writes(nil),
 	)
 
+	// Get Node
+	ws.Route(
+		ws.Method("GET").
+			Path("/nodes/{name}").
+			To(this.getNode).
+			Returns(http.StatusOK, "OK", nil).
+			Writes(nil),
+	)
+
 	// List nodes
 	ws.Route(
 		ws.Method("GET").
@@ -44,11 +53,30 @@ func (this NodeService) Register(ws *restful.WebService) {
 			Returns(http.StatusOK, "OK", nil).
 			Writes(nil),
 	)
+
+	// Update status
+	ws.Route(
+		ws.Method("PATCH").
+			Path("/nodes/{name}/status").
+			To(this.updateStatus).
+			Returns(http.StatusOK, "OK", nil).
+			Writes(nil),
+	)
 }
 
 func (this NodeService) createNode(req *restful.Request, resp *restful.Response) {
 	// TODO: add the correct resource type
 	response, err := this.proxy.Post(req, v1.APIResource{})
+	if err != nil {
+		handleInternalServerError(resp, err)
+	}
+
+	resp.AddHeader("Content-Type", "application/json")
+	resp.Write(response)
+}
+
+func (this NodeService) getNode(req *restful.Request, resp *restful.Response) {
+	response, err := this.proxy.Get(req, v1.APIResource{})
 	if err != nil {
 		handleInternalServerError(resp, err)
 	}
@@ -74,4 +102,13 @@ func (this NodeService) listNodes(req *restful.Request, resp *restful.Response) 
 	}
 	resp.AddHeader("Content-Type", "application/json")
 	resp.Write(response)
+}
+
+func (this NodeService) updateStatus(req *restful.Request, resp *restful.Response) {
+	updateResponse, err := this.proxy.Patch(req, v1.APIResource{})
+	if err != nil {
+		handleInternalServerError(resp, err)
+	}
+	resp.AddHeader("Content-Type", "application/json")
+	resp.Write(updateResponse)
 }

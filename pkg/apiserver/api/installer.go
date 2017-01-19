@@ -14,6 +14,7 @@ type APIInstaller struct {
 
 // NewWebService creates the core web service
 func (installer *APIInstaller) NewWebService() *restful.WebService {
+	restful.EnableTracing(true) //Trace missing endpoints
 	ws := new(restful.WebService).Filter(logPath).Path(installer.Root).Consumes("*/*").Produces("application/json")
 	ws.ApiVersion(installer.Version)
 	return ws
