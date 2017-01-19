@@ -40,8 +40,11 @@ func main() {
 			" Please provide a 'kubeconfig' file to access the kubernetes apiserver.")
 	}
 
+	// Get config object
+	config := kube.GetConfig(*argApiserverHost, *argKubeconfig)
+
 	// Create a client for the kubernetes apis
-	clientset := kube.NewClientset(*argKubeconfig)
+	kubeClient := kube.NewDynamicClient(config)
 
 	// Create api installer
 	installer := api.APIInstaller{Root: rootPath, Version: version}
@@ -50,7 +53,7 @@ func main() {
 	proxy := proxy.NewServerProxy(*argApiserverHost)
 
 	// Create service factory
-	serviceFactory := handler.NewServiceFactory(clientset, proxy)
+	serviceFactory := handler.NewServiceFactory(kubeClient, proxy)
 
 	ws := installer.NewWebService()
 	installer.Install(ws, serviceFactory.GetRegisteredServices())

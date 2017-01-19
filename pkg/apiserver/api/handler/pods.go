@@ -3,23 +3,23 @@ package handler
 import (
 	"net/http"
 
-	"k8s.io/client-go/kubernetes"
-
 	"github.com/emicklei/go-restful"
 	"github.com/fest-research/iot-addon/pkg/apiserver/controller"
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
 	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
+
+	"k8s.io/client-go/dynamic"
 )
 
 type PodService struct {
-	clientSet     *kubernetes.Clientset
+	kubeClient    *dynamic.Client
 	proxy         proxy.IServerProxy
 	podController *controller.PodController
 }
 
-func NewPodService(clientSet *kubernetes.Clientset, proxy proxy.IServerProxy,
+func NewPodService(kubeClient *dynamic.Client, proxy proxy.IServerProxy,
 	controller *controller.PodController) PodService {
-	return PodService{clientSet: clientSet, proxy: proxy, podController: controller}
+	return PodService{kubeClient: kubeClient, proxy: proxy, podController: controller}
 }
 
 func (this PodService) Register(ws *restful.WebService) {

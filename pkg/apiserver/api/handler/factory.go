@@ -1,10 +1,10 @@
 package handler
 
 import (
+	"github.com/fest-research/iot-addon/pkg/apiserver/controller"
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
 
-	"github.com/fest-research/iot-addon/pkg/apiserver/controller"
-	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/dynamic"
 )
 
 type IServiceFactory interface {
@@ -12,13 +12,13 @@ type IServiceFactory interface {
 }
 
 type ServiceFactory struct {
-	clientSet *kubernetes.Clientset
-	proxy     proxy.IServerProxy
-	services  []IService
+	kubeClient *dynamic.Client
+	proxy      proxy.IServerProxy
+	services   []IService
 }
 
-func NewServiceFactory(clientSet *kubernetes.Clientset, proxy proxy.IServerProxy) *ServiceFactory {
-	factory := &ServiceFactory{clientSet: clientSet, proxy: proxy, services: make([]IService, 0)}
+func NewServiceFactory(kubeClient *dynamic.Client, proxy proxy.IServerProxy) *ServiceFactory {
+	factory := &ServiceFactory{kubeClient: kubeClient, proxy: proxy, services: make([]IService, 0)}
 	factory.init()
 
 	return factory
@@ -36,7 +36,7 @@ func (this *ServiceFactory) init() {
 	this.registerService(NewNodeService(this.proxy))
 
 	// Pod service
-	this.registerService(NewPodService(this.clientSet, this.proxy, controller.NewPodController()))
+	this.registerService(NewPodService(this.kubeClient, this.proxy, controller.NewPodController()))
 
 	// Kubernetes service
 	this.registerService(NewKubeService(this.proxy))
