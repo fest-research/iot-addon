@@ -6,6 +6,8 @@ import (
 	"k8s.io/client-go/pkg/api/v1"
 )
 
+const IotPodType = "iotpods"
+
 type IotPod struct {
 	metav1.TypeMeta `json:",inline"`
 	Metadata        v1.ObjectMeta `json:"metadata,omitempty"`

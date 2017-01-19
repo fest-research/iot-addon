@@ -7,7 +7,9 @@ import (
 	"github.com/fest-research/iot-addon/pkg/apiserver/controller"
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
 	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/fest-research/iot-addon/pkg/api/v1"
+
+	kubeapi "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/pkg/api"
 )
 
@@ -59,7 +61,7 @@ func (this PodService) Register(ws *restful.WebService) {
 }
 
 func (this PodService) updateStatus(req *restful.Request, resp *restful.Response) {
-	updateResponse, err := this.proxy.Put(req, v1.APIResource{})
+	updateResponse, err := this.proxy.Put(req, kubeapi.APIResource{})
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
@@ -69,7 +71,7 @@ func (this PodService) updateStatus(req *restful.Request, resp *restful.Response
 }
 
 func (this PodService) getPod(req *restful.Request, resp *restful.Response) {
-	podResponse, err := this.proxy.Get(req, v1.APIResource{})
+	podResponse, err := this.proxy.Get(req, kubeapi.APIResource{})
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
@@ -80,7 +82,7 @@ func (this PodService) getPod(req *restful.Request, resp *restful.Response) {
 }
 
 func (this PodService) listPods(req *restful.Request, resp *restful.Response) {
-	response, err := this.proxy.List(req, v1.APIResourceList{})
+	response, err := this.proxy.List(req, kubeapi.APIResourceList{})
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
@@ -91,7 +93,7 @@ func (this PodService) listPods(req *restful.Request, resp *restful.Response) {
 }
 
 func (this PodService) watchPods(req *restful.Request, resp *restful.Response) {
-	watcher, err := this.proxy.Watch(&v1.APIResource{Name: "iotpods", Namespaced: true},
+	watcher, err := this.proxy.Watch(&kubeapi.APIResource{Name: v1.IotPodType, Namespaced: true},
 		&api.ListOptions{})
 	if err != nil {
 		handleInternalServerError(resp, err)
