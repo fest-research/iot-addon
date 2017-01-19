@@ -7,14 +7,18 @@ import (
 
 	"github.com/emicklei/go-restful"
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
+	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
+	"github.com/fest-research/iot-addon/pkg/apiserver/controller"
 )
 
 type NodeService struct {
 	proxy proxy.IServerProxy
+	nodeController *controller.NodeController
+
 }
 
-func NewNodeService(proxy proxy.IServerProxy) NodeService {
-	return NodeService{proxy: proxy}
+func NewNodeService(proxy proxy.IServerProxy, controller *controller.NodeController) NodeService {
+	return NodeService{proxy: proxy, nodeController: controller}
 }
 
 func (this NodeService) Register(ws *restful.WebService) {
@@ -86,13 +90,11 @@ func (this NodeService) getNode(req *restful.Request, resp *restful.Response) {
 }
 
 func (this NodeService) watchNodes(req *restful.Request, resp *restful.Response) {
-	response, err := this.proxy.Get(req, v1.APIResource{})
-	if err != nil {
-		handleInternalServerError(resp, err)
-	}
+	watcher := this.proxy.Watch(req, v1.APIResource{})
+	notifier := watch.NewNotifier()
 
-	resp.AddHeader("Content-Type", "application/json")
-	resp.Write(response)
+	notifier.Register(this.nodeController)
+	notifier.Start(watcher, resp)
 }
 
 func (this NodeService) listNodes(req *restful.Request, resp *restful.Response) {

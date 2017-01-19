@@ -30,7 +30,7 @@ func (this *ServiceFactory) init() {
 	this.registerService(NewVersionService(this.proxy))
 
 	// Node service
-	this.registerService(NewNodeService(this.proxy))
+	this.registerService(NewNodeService(this.proxy, controller.NewNodeController()))
 
 	// Pod service
 	this.registerService(NewPodService(this.proxy, controller.NewPodController()))
