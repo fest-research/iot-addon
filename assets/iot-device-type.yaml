@@ -1,0 +1,7 @@
+apiVersion: extensions/v1beta1
+kind: ThirdPartyResource
+metadata:
+  name: iot-device.fujitsu.com
+description: "A specification of a IoT device"
+versions:
+- name: v1

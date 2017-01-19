@@ -1,0 +1,48 @@
+apiVersion: "fujitsu.com/v1"
+kind: IotDaemonSet
+metadata:
+  name: iot-ds-multicon
+  namespace: iot
+  labels:
+    deviceSelector: "raspberry-pi-1"
+spec:
+  template:
+    metadata:
+      labels:
+        app: iot-ds-multicon
+        name: iot-ds-multicon
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 6379
+        - name: bosybox
+          image: bosybox
+          command:
+            - sleep
+            - "3600"
+      imagePullPolicy: IfNotPresent
+  restartPolicy: Always
+---
+apiVersion: "fujitsu.com/v1"
+kind: IotDaemonSet
+metadata:
+  name: iot-ds-nginx
+  namespace: iot
+  labels:
+    deviceSelector: "all"
+spec:
+  template:
+    metadata:
+      labels:
+        app: iot-ds-nginx
+        name: iot-ds-nginx
+    spec:
+      containers:
+        - name: nginx
+          image: nginx
+          ports:
+            - containerPort: 6379
+      imagePullPolicy: IfNotPresent
+  restartPolicy: Always
