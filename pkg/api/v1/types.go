@@ -1,21 +1,21 @@
 package v1
 
 import (
-	"k8s.io/client-go/pkg/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
 )
 
 type IotDevice struct {
 	metav1.TypeMeta `json:",inline"`
-	Metadata    metav1.ListMeta `json:"metadata"`
+	Metadata        metav1.ListMeta `json:"metadata"`
 }
 
 type IotDeviceList struct {
 	metav1.TypeMeta `json:",inline"`
-	Metadata    metav1.ListMeta `json:"metadata"`
-	Items       []IotDevice `json:"items"`
+	Metadata        metav1.ListMeta `json:"metadata"`
+	Items           []IotDevice     `json:"items"`
 }
 
 func (iotDevice *IotDevice) GetObjectKind() schema.ObjectKind {
@@ -64,7 +64,6 @@ type IotDaemonSetList struct {
 	Items []IotDaemonSet `json:"items"`
 }
 
-
 func (iotDaemonSet *IotDaemonSet) GetObjectKind() schema.ObjectKind {
 	return &iotDaemonSet.TypeMeta
 }
@@ -80,7 +79,6 @@ func (iotDaemonSetList *IotDaemonSetList) GetObjectKind() schema.ObjectKind {
 func (iotDaemonSetList *IotDaemonSetList) GetListMeta() metav1.List {
 	return &iotDaemonSetList.Metadata
 }
-
 
 // IotPod is a collection of containers that can run on a IotDevice.
 type IotPod struct {

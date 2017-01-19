@@ -1,11 +1,11 @@
 package proxy
 
 import (
+	"bytes"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
-	"bytes"
 
 	"github.com/emicklei/go-restful"
 	"github.com/emicklei/go-restful/log"

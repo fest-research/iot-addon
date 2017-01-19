@@ -16,7 +16,7 @@ var iotDaemonSetResource = v1.APIResource{
 
 func WatchIotDaemonSet(client *dynamic.Client) {
 	watcher, err := client.
-	Resource(&iotDaemonSetResource, api.NamespaceAll).
+		Resource(&iotDaemonSetResource, api.NamespaceAll).
 		Watch(&api.ListOptions{})
 
 	if err != nil {
@@ -46,5 +46,3 @@ func WatchIotDaemonSet(client *dynamic.Client) {
 		}
 	}
 }
-
-

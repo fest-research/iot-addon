@@ -11,7 +11,7 @@ type Controller interface {
 	Transform(interface{}) (interface{}, error)
 }
 
-type PodController struct {}
+type PodController struct{}
 
 func (this PodController) Transform(in interface{}) (interface{}, error) {
 	log.Print("PodController - Transform()")
