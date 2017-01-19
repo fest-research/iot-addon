@@ -17,7 +17,8 @@ import (
 var (
 	argApiserverHost = pflag.String("apiserver", "", "Kubernetes api server address")
 	argPort          = pflag.Int("port", 8083, "Port to listen on")
-	argKubeconfig    = pflag.String("kubeconfig", "./kubeconfig.yaml", "absolute path to the kubeconfig file")
+	argKubeconfig    = pflag.String("kubeconfig", "./assets/default-kubeconfig.yaml",
+		"Absolute path to the kubeconfig file")
 )
 
 const (
