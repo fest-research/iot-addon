@@ -3,13 +3,14 @@ package watch
 import (
 	"fmt"
 	"net/http"
-	"time"
-
 	"reflect"
+	"time"
 
 	"github.com/emicklei/go-restful"
 	"github.com/emicklei/go-restful/log"
+	"github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/apiserver/controller"
+
 	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/apimachinery/pkg/watch"
 )
@@ -61,7 +62,7 @@ func (this *Notifier) Start(watcher watch.Interface, response *restful.Response)
 		case <-timeoutCh:
 			return nil
 		case event := <-resultChan:
-			// Transform data if there are any transformers registered
+			// Transform data if there are any controllers registered
 			for _, controller := range this.controllers {
 				transformed, err := controller.Transform(event)
 				if err != nil {
@@ -76,13 +77,15 @@ func (this *Notifier) Start(watcher watch.Interface, response *restful.Response)
 				}
 			}
 
-			encodedEvent, err := json.Marshal(&event)
+			// Our event has correct json annotations for watch event.
+			iotEvent := this.toEvent(event)
+			encodedEvent, err := json.Marshal(&iotEvent)
 			if err != nil {
 				return err
 			}
 
 			log.Printf("[Notifier] Sending response to watch client: %s", encodedEvent)
-			_, err = response.Write([]byte(encodedEvent))
+			_, err = response.Write(encodedEvent)
 			if err != nil {
 				return err
 			}
@@ -91,6 +94,13 @@ func (this *Notifier) Start(watcher watch.Interface, response *restful.Response)
 				flusher.Flush()
 			}
 		}
+	}
+}
+
+func (this Notifier) toEvent(event watch.Event) v1.Event {
+	return v1.Event{
+		Type:   event.Type,
+		Object: event.Object,
 	}
 }
 

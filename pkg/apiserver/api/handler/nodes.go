@@ -8,8 +8,6 @@ import (
 	"github.com/emicklei/go-restful"
 	"github.com/fest-research/iot-addon/pkg/apiserver/controller"
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
-	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
-	"k8s.io/client-go/pkg/api"
 )
 
 type NodeService struct {
@@ -90,16 +88,6 @@ func (this NodeService) getNode(req *restful.Request, resp *restful.Response) {
 }
 
 func (this NodeService) watchNodes(req *restful.Request, resp *restful.Response) {
-	watcher, err := this.proxy.Watch(&v1.APIResource{}, &api.ListOptions{})
-	if err != nil {
-		handleInternalServerError(resp, err)
-		return
-	}
-
-	notifier := watch.NewNotifier()
-
-	notifier.Register(this.nodeController)
-	notifier.Start(watcher, resp)
 }
 
 func (this NodeService) listNodes(req *restful.Request, resp *restful.Response) {
