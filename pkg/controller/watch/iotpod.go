@@ -10,14 +10,14 @@ import (
 	"k8s.io/client-go/pkg/api"
 )
 
-var iotDeviceResource = v1.APIResource{
-	Name:       "iotdevices",
+var iotPodResource = v1.APIResource{
+	Name:       "iotpods",
 	Namespaced: true,
 }
 
-func WatchIotDevices(client *dynamic.Client) {
+func WatchIotPods(client *dynamic.Client) {
 	watcher, err := client.
-		Resource(&iotDeviceResource, api.NamespaceAll).
+		Resource(&iotPodResource, api.NamespaceAll).
 		Watch(&api.ListOptions{})
 
 	if err != nil {
@@ -30,17 +30,17 @@ func WatchIotDevices(client *dynamic.Client) {
 		e, ok := <-watcher.ResultChan()
 
 		if !ok {
-			panic("IotDevices ended early?")
+			panic("IotPod ended early?")
 		}
 
-		iotDevice, _ := e.Object.(*types.IotDevice)
+		iotPod, _ := e.Object.(*types.IotPod)
 
 		if e.Type == watch.Added {
-			fmt.Printf("Added %s\n", iotDevice.Metadata.SelfLink)
+			fmt.Printf("Added %s\n", iotPod.Metadata.SelfLink)
 		} else if e.Type == watch.Modified {
-			fmt.Printf("Modified %s\n", iotDevice.Metadata.SelfLink)
+			fmt.Printf("Modified %s\n", iotPod.Metadata.SelfLink)
 		} else if e.Type == watch.Deleted {
-			fmt.Printf("Deleted %s\n", iotDevice.Metadata.SelfLink)
+			fmt.Printf("Deleted %s\n", iotPod.Metadata.SelfLink)
 		} else if e.Type == watch.Error {
 			fmt.Println("Error")
 			break

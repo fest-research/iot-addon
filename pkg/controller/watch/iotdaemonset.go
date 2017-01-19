@@ -2,6 +2,7 @@ package watch
 
 import (
 	"fmt"
+
 	types "github.com/fest-research/IoT-apiserver/pkg/api/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
@@ -16,7 +17,7 @@ var iotDaemonSetResource = v1.APIResource{
 
 func WatchIotDaemonSet(client *dynamic.Client) {
 	watcher, err := client.
-	Resource(&iotDaemonSetResource, api.NamespaceAll).
+		Resource(&iotDaemonSetResource, api.NamespaceAll).
 		Watch(&api.ListOptions{})
 
 	if err != nil {
@@ -29,7 +30,7 @@ func WatchIotDaemonSet(client *dynamic.Client) {
 		e, ok := <-watcher.ResultChan()
 
 		if !ok {
-			panic(fmt.Sprintf("IotDaemonSet ended early?"))
+			panic("IotDaemonSet ended early?")
 		}
 
 		iotDaemonSet, _ := e.Object.(*types.IotDaemonSet)
@@ -46,5 +47,3 @@ func WatchIotDaemonSet(client *dynamic.Client) {
 		}
 	}
 }
-
-

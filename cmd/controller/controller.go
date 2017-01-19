@@ -47,7 +47,9 @@ func main() {
 
 	go watch.WatchIotDevices(client)
 
-	watch.WatchIotDaemonSet(client)
+	go watch.WatchIotDaemonSet(client)
+
+	go watch.WatchIotPods(client)
 
 	for {
 		// Endless loop
