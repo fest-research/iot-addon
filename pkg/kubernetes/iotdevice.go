@@ -9,6 +9,7 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+// GetAllDevices returns all IotDevices from selected namespace.
 func GetAllDevices(dynamicClient *dynamic.Client, namespace string) ([]types.IotDevice, error) {
 	devices, err := dynamicClient.Resource(&metav1.APIResource{
 		Name:       "iotdevices",
@@ -22,6 +23,7 @@ func GetAllDevices(dynamicClient *dynamic.Client, namespace string) ([]types.Iot
 	return devices.(*types.IotDeviceList).Items, nil
 }
 
+// GetAllDevices returns IotDevice with selected name from selected namespace.
 func GetDevice(restClient *rest.RESTClient, name, namespace string) types.IotDevice {
 	var device types.IotDevice
 
@@ -34,3 +36,9 @@ func GetDevice(restClient *rest.RESTClient, name, namespace string) types.IotDev
 
 	return device
 }
+
+// TODO Add function to retrieve related pods. Pods for device can be discovered using
+// "deviceSelector" label from pod (it's copied from daemon set during pod creation).
+
+// TODO Add function to retrieve related daemon sets. Daemon sets can be discovered using
+// "deviceSelector" label from daemon set.

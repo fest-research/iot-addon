@@ -7,12 +7,6 @@ import (
 	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
 )
 
-// TODO Add function to retrieve related pods. Pods for daemon set can be discovered using
-// "createdBy" annotation from pod.
-
-// TODO Add function to retrieve related device. Device can be discovered using "deviceSelector"
-// label from daemon set.
-
 type IotDaemonSet struct {
 	metav1.TypeMeta `json:",inline"`
 	Metadata        v1.ObjectMeta           `json:"metadata,omitempty"`

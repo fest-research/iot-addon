@@ -8,16 +8,19 @@ import (
 	"k8s.io/client-go/pkg/api"
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/rest"
+	"log"
 )
 
-func GetIotPods(ds types.IotDaemonSet, dynamicClient *dynamic.Client,
-	restClient *rest.RESTClient) ([]types.IotPod, error) {
+func CreateIotPods(ds types.IotDaemonSet, dynamicClient *dynamic.Client,
+	restClient *rest.RESTClient) error {
 	var pods []types.IotPod
 	devices, err := GetDaemonSetSelectedDevices(ds, dynamicClient, restClient)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
+
+	// TODO check if pods don't exist already!
 
 	for _, device := range devices {
 		pod := types.IotPod{
@@ -37,5 +40,27 @@ func GetIotPods(ds types.IotDaemonSet, dynamicClient *dynamic.Client,
 		}
 		pods = append(pods, pod)
 	}
-	return pods, nil
+
+	for _, pod := range pods {
+		newPod := types.IotPod{}
+
+		err = restClient.Post().
+			Namespace(ds.Metadata.Namespace).
+			Resource("iotpods").
+			Body(&pod).
+			Do().
+			Into(&newPod)
+
+		log.Printf("Created new pod %s for %s daemon set",
+			newPod.Metadata.Name,
+			ds.Metadata.Name)
+	}
+
+	return nil
 }
+
+// TODO Add function to retrieve related devices. Devices for pod can be discovered using
+// "deviceSelector" label from pod (it's copied from daemon set during pod creation).
+
+// TODO Add function to retrieve related daemon sets. Daemon sets can be discovered using
+// "createdBy" label from pod.

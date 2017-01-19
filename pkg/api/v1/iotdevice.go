@@ -6,12 +6,6 @@ import (
 	"k8s.io/client-go/pkg/api/v1"
 )
 
-// TODO Add function to retrieve related pods. Pods for device can be discovered using
-// "deviceSelector" label from pod (it's copied from daemon set during pod creation).
-
-// TODO Add function to retrieve related daemon sets. Daemon sets can be discovered using
-// "deviceSelector" label from daemon set.
-
 type IotDevice struct {
 	metav1.TypeMeta `json:",inline"`
 	Metadata        v1.ObjectMeta `json:"metadata"`
