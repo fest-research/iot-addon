@@ -2,7 +2,6 @@ package watch
 
 import (
 	"fmt"
-
 	types "github.com/fest-research/IoT-apiserver/pkg/api/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
@@ -30,7 +29,7 @@ func WatchIotDevices(client *dynamic.Client) {
 		e, ok := <-watcher.ResultChan()
 
 		if !ok {
-			panic("IotDevices ended early?")
+			panic(fmt.Sprintf("IotDevices ended early?"))
 		}
 
 		iotDevice, _ := e.Object.(*types.IotDevice)
