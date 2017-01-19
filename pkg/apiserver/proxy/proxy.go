@@ -10,13 +10,16 @@ import (
 	"github.com/emicklei/go-restful"
 	"github.com/emicklei/go-restful/log"
 	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type IServerProxy interface {
-	Put(*restful.Request) ([]byte, error)
-	Get(*restful.Request) ([]byte, error)
-	Post(*restful.Request) ([]byte, error)
-	Watch(*restful.Request) watch.Watcher
+	Put(*restful.Request, v1.APIResource) ([]byte, error)
+	Get(*restful.Request, v1.APIResource) ([]byte, error)
+	List(*restful.Request, v1.APIResourceList) ([]byte, error)
+	Post(*restful.Request, v1.APIResource) ([]byte, error)
+	Watch(*restful.Request, v1.APIResource) watch.Watcher
+	WatchList(*restful.Request, v1.APIResourceList) watch.Watcher
 }
 
 type ServerProxy struct {
@@ -27,10 +30,32 @@ func NewServerProxy(address string) ServerProxy {
 	return ServerProxy{serverAddress: address}
 }
 
-func (this ServerProxy) Get(req *restful.Request) ([]byte, error) {
+func (this ServerProxy) List(req *restful.Request, resource v1.APIResourceList) ([]byte, error) {
+	requestPath := this.serverAddress + this.removePathParams(req.Request.URL)
+	log.Printf("[Proxy] LIST Request (%s)", requestPath)
+
+	// TODO: replace this with a call to the kube-client
+	r, err := http.Get(requestPath)
+	if err != nil {
+		return nil, err
+	}
+
+	defer r.Body.Close()
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("[Proxy] LIST Response (%s): %s", requestPath, string(body))
+	return body, nil
+}
+
+func (this ServerProxy) Get(req *restful.Request, resource v1.APIResource) ([]byte, error) {
 	requestPath := this.serverAddress + this.removePathParams(req.Request.URL)
 	log.Printf("[Proxy] GET Request (%s)", requestPath)
 
+	// TODO: replace this with a call to the kube-client
 	r, err := http.Get(requestPath)
 	if err != nil {
 		return nil, err
@@ -47,7 +72,7 @@ func (this ServerProxy) Get(req *restful.Request) ([]byte, error) {
 	return body, nil
 }
 
-func (this ServerProxy) Put(req *restful.Request) ([]byte, error) {
+func (this ServerProxy) Put(req *restful.Request, resource v1.APIResource) ([]byte, error) {
 	requestPath := this.serverAddress + this.removePathParams(req.Request.URL)
 
 	defer req.Request.Body.Close()
@@ -57,6 +82,7 @@ func (this ServerProxy) Put(req *restful.Request) ([]byte, error) {
 	}
 	log.Printf("[Proxy] PUT Request (%s): %s", requestPath, string(reqBody))
 
+	// TODO: replace this with a call to the kube-client
 	r, err := http.NewRequest("PUT", requestPath, bytes.NewReader(reqBody))
 	if err != nil {
 		return nil, err
@@ -73,7 +99,7 @@ func (this ServerProxy) Put(req *restful.Request) ([]byte, error) {
 	return body, nil
 }
 
-func (this ServerProxy) Post(req *restful.Request) ([]byte, error) {
+func (this ServerProxy) Post(req *restful.Request, resource v1.APIResource) ([]byte, error) {
 	requestPath := this.serverAddress + this.removePathParams(req.Request.URL)
 
 	defer req.Request.Body.Close()
@@ -83,6 +109,7 @@ func (this ServerProxy) Post(req *restful.Request) ([]byte, error) {
 	}
 	log.Printf("[Proxy] POST Request (%s): %s", requestPath, string(reqBody))
 
+	// TODO: replace this with a call to the kube-client
 	r, err := http.Post(requestPath, "application/json", bytes.NewReader(reqBody))
 	if err != nil {
 		return nil, err
@@ -99,7 +126,18 @@ func (this ServerProxy) Post(req *restful.Request) ([]byte, error) {
 	return body, nil
 }
 
-func (this ServerProxy) Watch(req *restful.Request) watch.Watcher {
+func (this ServerProxy) Watch(req *restful.Request, resource v1.APIResource) watch.Watcher {
+	// TODO: replace this with a call to the kube-client
+	watcher := watch.NewRawWatcher()
+	// TODO map request path to third party resource watch path
+	requestPath := this.serverAddress + this.removePathParams(req.Request.URL)
+
+	go watcher.Watch(requestPath)
+	return watcher
+}
+
+func (this ServerProxy) WatchList(req *restful.Request, resource v1.APIResourceList) watch.Watcher {
+	// TODO: replace this with a call to the kube-client
 	watcher := watch.NewRawWatcher()
 	// TODO map request path to third party resource watch path
 	requestPath := this.serverAddress + this.removePathParams(req.Request.URL)

@@ -5,6 +5,7 @@ import (
 
 	"github.com/emicklei/go-restful"
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type KubeService struct {
@@ -36,7 +37,7 @@ func (this KubeService) Register(ws *restful.WebService) {
 }
 
 func (this KubeService) listServices(req *restful.Request, resp *restful.Response) {
-	response, err := this.proxy.Get(req)
+	response, err := this.proxy.List(req, v1.APIResourceList{})
 	if err != nil {
 		handleInternalServerError(resp, err)
 	}
@@ -46,7 +47,7 @@ func (this KubeService) listServices(req *restful.Request, resp *restful.Respons
 }
 
 func (this KubeService) watchServices(req *restful.Request, resp *restful.Response) {
-	response, err := this.proxy.Get(req)
+	response, err := this.proxy.Get(req, v1.APIResource{})
 	if err != nil {
 		handleInternalServerError(resp, err)
 	}

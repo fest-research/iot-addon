@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"time"
 
+	"reflect"
+
 	"github.com/emicklei/go-restful"
 	"github.com/emicklei/go-restful/log"
 	"github.com/fest-research/iot-addon/pkg/apiserver/controller"
-	"reflect"
 )
 
 var defaultTimeout = 10 * time.Minute

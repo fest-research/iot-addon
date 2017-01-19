@@ -3,6 +3,8 @@ package handler
 import (
 	"net/http"
 
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/emicklei/go-restful"
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
 )
@@ -45,7 +47,8 @@ func (this NodeService) Register(ws *restful.WebService) {
 }
 
 func (this NodeService) createNode(req *restful.Request, resp *restful.Response) {
-	response, err := this.proxy.Post(req)
+	// TODO: add the correct resource type
+	response, err := this.proxy.Post(req, v1.APIResource{})
 	if err != nil {
 		handleInternalServerError(resp, err)
 	}
@@ -55,7 +58,7 @@ func (this NodeService) createNode(req *restful.Request, resp *restful.Response)
 }
 
 func (this NodeService) watchNodes(req *restful.Request, resp *restful.Response) {
-	response, err := this.proxy.Get(req)
+	response, err := this.proxy.Get(req, v1.APIResource{})
 	if err != nil {
 		handleInternalServerError(resp, err)
 	}
@@ -65,7 +68,7 @@ func (this NodeService) watchNodes(req *restful.Request, resp *restful.Response)
 }
 
 func (this NodeService) listNodes(req *restful.Request, resp *restful.Response) {
-	response, err := this.proxy.Get(req)
+	response, err := this.proxy.List(req, v1.APIResourceList{})
 	if err != nil {
 		handleInternalServerError(resp, err)
 	}

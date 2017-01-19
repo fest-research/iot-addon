@@ -1,6 +1,8 @@
 package kubernetes
 
 import (
+	"log"
+
 	"github.com/fest-research/iot-addon/pkg/api/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -9,7 +11,6 @@ import (
 	"k8s.io/client-go/pkg/api"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"log"
 )
 
 func NewDynamicClient(config *rest.Config) *dynamic.Client {
