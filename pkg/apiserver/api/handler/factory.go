@@ -35,6 +35,9 @@ func (this *ServiceFactory) init() {
 	// Pod service
 	this.registerService(NewPodService(this.proxy, controller.NewPodController()))
 
+	// Node service
+	this.registerService(NewEventService(this.proxy))
+
 	// Kubernetes service
 	this.registerService(NewKubeService(this.proxy))
 }
