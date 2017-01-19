@@ -19,7 +19,8 @@ func (this PodController) Transform(in interface{}) (interface{}, error) {
 
 	switch in.(type) {
 	case watch.Event:
-		return this.transform(in), nil
+		event := in.(watch.Event)
+		return this.transform(event), nil
 	default:
 		return nil, fmt.Errorf("Not supported type: %s", reflect.TypeOf(in))
 	}
