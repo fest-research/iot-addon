@@ -5,6 +5,12 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
+// TODO Add function to retrieve related pods. Pods for device can be discovered using
+// "deviceSelector" label from pod (it's copied from daemon set during pod creation).
+
+// TODO Add function to retrieve related daemon sets. Daemon sets can be discovered using
+// "deviceSelector" label from daemon set.
+
 type IotDevice struct {
 	v1.TypeMeta `json:",inline"`
 	Metadata    v1.ListMeta `json:"metadata"`
