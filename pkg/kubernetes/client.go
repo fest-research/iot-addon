@@ -6,25 +6,13 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"log"
 )
 
-func NewClientset(kubeconfig string) *kubernetes.Clientset {
-	config := GetConfig("", kubeconfig)
-
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	return clientset
-}
-
 func NewDynamicClient(config *rest.Config) *dynamic.Client {
-	configureClient(config)
 	client, err := dynamic.NewClient(config)
 
 	if err != nil {
@@ -34,17 +22,16 @@ func NewDynamicClient(config *rest.Config) *dynamic.Client {
 	return client
 }
 
-func GetConfig(apiserver, kubeconfig string) *rest.Config {
+func NewClientConfig(apiserver, kubeconfig string) *rest.Config {
+	log.Printf("Creating client config using \"%s\" apiserver and \"%s\" kubeconfig",
+		apiserver, kubeconfig)
+
 	config, err := clientcmd.BuildConfigFromFlags(apiserver, kubeconfig)
 
 	if err != nil {
 		panic(err.Error())
 	}
 
-	return config
-}
-
-func configureClient(config *rest.Config) {
 	groupVersion := schema.GroupVersion{
 		Group:   "fujitsu.com",
 		Version: "v1",
@@ -72,4 +59,5 @@ func configureClient(config *rest.Config) {
 		})
 
 	schemeBuilder.AddToScheme(api.Scheme)
+	return config
 }
