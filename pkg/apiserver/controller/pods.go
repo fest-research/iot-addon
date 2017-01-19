@@ -6,6 +6,9 @@ import (
 
 	"github.com/emicklei/go-restful/log"
 	"k8s.io/apimachinery/pkg/watch"
+
+	"github.com/fest-research/iot-addon/pkg/api/v1"
+	kubeapi "k8s.io/client-go/pkg/api/v1"
 )
 
 type Controller interface {
@@ -26,11 +29,19 @@ func (this PodController) Transform(in interface{}) (interface{}, error) {
 	}
 }
 
-func (this PodController) transform(in watch.Event) watch.Event {
-	log.Printf("%v", in)
-	log.Printf("%s", reflect.TypeOf(in.Object))
+func (this PodController) transform(event watch.Event) watch.Event {
+	log.Printf("%v", event)
+	log.Printf("%s", reflect.TypeOf(event.Object))
 
-	return in
+	iotPod := event.Object.(*v1.IotPod)
+	pod := kubeapi.Pod{}
+
+	pod.Spec = iotPod.Spec
+	pod.ObjectMeta = iotPod.Metadata
+	pod.Status = iotPod.Status
+
+	event.Object = &pod
+	return event
 }
 
 func NewPodController() *PodController {

@@ -10,8 +10,8 @@ import (
 	"github.com/emicklei/go-restful"
 	"github.com/emicklei/go-restful/log"
 	"github.com/fest-research/iot-addon/pkg/apiserver/controller"
-	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/apimachinery/pkg/util/json"
+	"k8s.io/apimachinery/pkg/watch"
 )
 
 var defaultTimeout = 10 * time.Minute
