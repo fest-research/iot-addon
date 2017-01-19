@@ -7,9 +7,7 @@ import (
 	"github.com/emicklei/go-restful/log"
 )
 
-
-
-type NodeController struct {}
+type NodeController struct{}
 
 func (this NodeController) Transform(in interface{}) (interface{}, error) {
 	log.Print("NodeController - Transform()")

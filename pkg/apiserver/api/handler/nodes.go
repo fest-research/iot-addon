@@ -6,15 +6,14 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/emicklei/go-restful"
+	"github.com/fest-research/iot-addon/pkg/apiserver/controller"
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
 	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
-	"github.com/fest-research/iot-addon/pkg/apiserver/controller"
 )
 
 type NodeService struct {
-	proxy proxy.IServerProxy
+	proxy          proxy.IServerProxy
 	nodeController *controller.NodeController
-
 }
 
 func NewNodeService(proxy proxy.IServerProxy, controller *controller.NodeController) NodeService {
