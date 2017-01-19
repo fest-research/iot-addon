@@ -9,10 +9,11 @@ import (
 
 	"github.com/emicklei/go-restful"
 	"github.com/emicklei/go-restful/log"
-	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/pkg/api"
 )
 
 type IServerProxy interface {
@@ -21,8 +22,7 @@ type IServerProxy interface {
 	List(*restful.Request, v1.APIResourceList) ([]byte, error)
 	Post(*restful.Request, v1.APIResource) ([]byte, error)
 	Patch(*restful.Request, v1.APIResource) ([]byte, error)
-	Watch(*restful.Request, v1.APIResource) watch.Watcher
-	WatchList(*restful.Request, v1.APIResourceList) watch.Watcher
+	Watch(*v1.APIResource, *api.ListOptions) (watch.Interface, error)
 }
 
 type ServerProxy struct {
@@ -157,24 +157,13 @@ func (this ServerProxy) Patch(req *restful.Request, resource v1.APIResource) ([]
 	return body, nil
 }
 
-func (this ServerProxy) Watch(req *restful.Request, resource v1.APIResource) watch.Watcher {
-	// TODO: replace this with a call to the kube-client
-	watcher := watch.NewRawWatcher()
-	// TODO map request path to third party resource watch path
-	requestPath := this.serverAddress + this.removePathParams(req.Request.URL)
+func (this ServerProxy) Watch(resource *v1.APIResource, listOptions *api.ListOptions) (
+	watch.Interface, error) {
+	watcher, err := this.kubeClient.
+		Resource(resource, api.NamespaceAll).
+		Watch(listOptions)
 
-	go watcher.Watch(requestPath)
-	return watcher
-}
-
-func (this ServerProxy) WatchList(req *restful.Request, resource v1.APIResourceList) watch.Watcher {
-	// TODO: replace this with a call to the kube-client
-	watcher := watch.NewRawWatcher()
-	// TODO map request path to third party resource watch path
-	requestPath := this.serverAddress + this.removePathParams(req.Request.URL)
-
-	go watcher.Watch(requestPath)
-	return watcher
+	return watcher, err
 }
 
 // Remove everything after '?' in url path (FOR TESTS ONLY!)

@@ -10,6 +10,8 @@ import (
 	"github.com/emicklei/go-restful"
 	"github.com/emicklei/go-restful/log"
 	"github.com/fest-research/iot-addon/pkg/apiserver/controller"
+	"k8s.io/apimachinery/pkg/util/json"
+	"k8s.io/apimachinery/pkg/watch"
 )
 
 var defaultTimeout = 10 * time.Minute
@@ -28,7 +30,7 @@ func (this *Notifier) SetTimeout(timeout time.Duration) {
 	this.timeout = timeout
 }
 
-func (this *Notifier) Start(watcher Watcher, response *restful.Response) error {
+func (this *Notifier) Start(watcher watch.Interface, response *restful.Response) error {
 	log.Printf("[Notifier] Starting watch client notifier.")
 	cn, ok := response.ResponseWriter.(http.CloseNotifier)
 	if !ok {
@@ -51,7 +53,6 @@ func (this *Notifier) Start(watcher Watcher, response *restful.Response) error {
 	flusher.Flush()
 
 	resultChan := watcher.ResultChan()
-	errorChan := watcher.ErrorChan()
 
 	for {
 		select {
@@ -59,26 +60,29 @@ func (this *Notifier) Start(watcher Watcher, response *restful.Response) error {
 			return nil
 		case <-timeoutCh:
 			return nil
-		case err := <-errorChan:
-			return err
-		case msg := <-resultChan:
+		case event := <-resultChan:
 			// Transform data if there are any transformers registered
 			for _, controller := range this.controllers {
-				transformed, err := controller.Transform(msg)
+				transformed, err := controller.Transform(event)
 				if err != nil {
 					return err
 				}
 
 				// We are expecting same type as we provided
-				msg, ok = transformed.(string)
+				event, ok = transformed.(watch.Event)
 				if !ok {
 					return fmt.Errorf("Transformation type mismatch. Provided: %s, got: %s",
-						reflect.TypeOf(msg), reflect.TypeOf(transformed))
+						reflect.TypeOf(event), reflect.TypeOf(transformed))
 				}
 			}
 
-			log.Printf("[Notifier] Sending response to watch client: %s", msg)
-			_, err := response.Write([]byte(msg))
+			encodedEvent, err := json.Marshal(&event)
+			if err != nil {
+				return err
+			}
+
+			log.Printf("[Notifier] Sending response to watch client: %s", encodedEvent)
+			_, err = response.Write([]byte(encodedEvent))
 			if err != nil {
 				return err
 			}
