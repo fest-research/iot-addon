@@ -50,10 +50,10 @@ func main() {
 	installer := api.APIInstaller{Root: rootPath, Version: version}
 
 	// Create api proxy TODO: poll server and check if address is correct
-	proxy := proxy.NewServerProxy(*argApiserverHost)
+	proxy := proxy.NewServerProxy(kubeClient, *argApiserverHost)
 
 	// Create service factory
-	serviceFactory := handler.NewServiceFactory(kubeClient, proxy)
+	serviceFactory := handler.NewServiceFactory(proxy)
 
 	ws := installer.NewWebService()
 	installer.Install(ws, serviceFactory.GetRegisteredServices())

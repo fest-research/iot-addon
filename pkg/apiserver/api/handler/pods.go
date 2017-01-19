@@ -8,19 +8,15 @@ import (
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
 	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"k8s.io/client-go/dynamic"
 )
 
 type PodService struct {
-	kubeClient    *dynamic.Client
 	proxy         proxy.IServerProxy
 	podController *controller.PodController
 }
 
-func NewPodService(kubeClient *dynamic.Client, proxy proxy.IServerProxy,
-	controller *controller.PodController) PodService {
-	return PodService{kubeClient: kubeClient, proxy: proxy, podController: controller}
+func NewPodService(proxy proxy.IServerProxy, controller *controller.PodController) PodService {
+	return PodService{proxy: proxy, podController: controller}
 }
 
 func (this PodService) Register(ws *restful.WebService) {

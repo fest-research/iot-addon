@@ -11,6 +11,8 @@ import (
 	"github.com/emicklei/go-restful/log"
 	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"k8s.io/client-go/dynamic"
 )
 
 type IServerProxy interface {
@@ -23,11 +25,13 @@ type IServerProxy interface {
 }
 
 type ServerProxy struct {
+	kubeClient    *dynamic.Client
 	serverAddress string
 }
 
-func NewServerProxy(address string) ServerProxy {
-	return ServerProxy{serverAddress: address}
+func NewServerProxy(kubeClient *dynamic.Client, address string) ServerProxy {
+	// TODO: remove the serverAddress when kubeClient is used everywhere
+	return ServerProxy{kubeClient: kubeClient, serverAddress: address}
 }
 
 func (this ServerProxy) List(req *restful.Request, resource v1.APIResourceList) ([]byte, error) {
