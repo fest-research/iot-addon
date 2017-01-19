@@ -3,7 +3,7 @@ package api
 import (
 	restful "github.com/emicklei/go-restful"
 	"github.com/emicklei/go-restful/log"
-	"github.com/fest-research/IoT-apiserver/pkg/apiserver/api/handler"
+	"github.com/fest-research/iot-addon/pkg/apiserver/api/handler"
 )
 
 // APIInstaller installs the APIs in the server

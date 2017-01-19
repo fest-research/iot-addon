@@ -2,7 +2,7 @@ package watch
 
 import (
 	"fmt"
-	types "github.com/fest-research/IoT-apiserver/pkg/api/v1"
+	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"

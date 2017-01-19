@@ -7,7 +7,7 @@ import (
 
 	"github.com/emicklei/go-restful"
 	"github.com/emicklei/go-restful/log"
-	"github.com/fest-research/IoT-apiserver/pkg/apiserver/controller"
+	"github.com/fest-research/iot-addon/pkg/apiserver/controller"
 	"reflect"
 )
 

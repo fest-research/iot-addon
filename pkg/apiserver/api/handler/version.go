@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/emicklei/go-restful"
-	"github.com/fest-research/IoT-apiserver/pkg/apiserver/proxy"
+	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
 )
 
 type VersionService struct {

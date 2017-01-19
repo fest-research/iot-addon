@@ -12,8 +12,8 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/fest-research/IoT-apiserver/pkg/api/v1"
-	"github.com/fest-research/IoT-apiserver/pkg/controller/watch"
+	"github.com/fest-research/iot-addon/pkg/api/v1"
+	"github.com/fest-research/iot-addon/pkg/controller/watch"
 	"github.com/spf13/pflag"
 )
 

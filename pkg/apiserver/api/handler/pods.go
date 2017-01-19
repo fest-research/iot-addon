@@ -6,9 +6,9 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	"github.com/emicklei/go-restful"
-	"github.com/fest-research/IoT-apiserver/pkg/apiserver/controller"
-	"github.com/fest-research/IoT-apiserver/pkg/apiserver/proxy"
-	"github.com/fest-research/IoT-apiserver/pkg/apiserver/watch"
+	"github.com/fest-research/iot-addon/pkg/apiserver/controller"
+	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
+	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
 )
 
 type PodService struct {
