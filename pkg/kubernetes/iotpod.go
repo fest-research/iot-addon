@@ -59,6 +59,33 @@ func CreateIotPods(ds types.IotDaemonSet, dynamicClient *dynamic.Client,
 	return nil
 }
 
+func GetIotPods(dynamicClient *dynamic.Client, namespace string, createdBy string, deviceSelector string) ([]types.IotPod, error) {
+	var resultList []types.IotPod
+
+	pods, err := dynamicClient.Resource(&metav1.APIResource{
+		Name:       types.IotPodType,
+		Namespaced: namespace != api.NamespaceNone,
+	}, namespace).List(&v1.ListOptions{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	items := pods.(*types.IotPodList).Items
+
+	for _, item := range items {
+		createdByFromPod, okCreatedBy := item.Metadata.Annotations[api.CreatedByAnnotation]
+		deviceSelectorFromPod, okDeviceSelector := item.Metadata.Annotations[types.DeviceSelector]
+
+		if (okCreatedBy && okDeviceSelector) {
+			if (createdBy == createdByFromPod && deviceSelector == deviceSelectorFromPod) {
+				resultList = append(resultList, item)
+			}
+		}
+	}
+	return resultList, nil
+}
+
 // TODO Add function to retrieve related devices. Devices for pod can be discovered using
 // "deviceSelector" label from pod (it's copied from daemon set during pod creation).
 
