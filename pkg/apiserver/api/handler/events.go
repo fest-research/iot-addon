@@ -47,7 +47,7 @@ func (this EventService) createEvent(req *restful.Request, resp *restful.Respons
 }
 
 func (this EventService) updateEvent(req *restful.Request, resp *restful.Response) {
-	response, err := this.proxy.Post(req)
+	response, err := this.proxy.Patch(req)
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return

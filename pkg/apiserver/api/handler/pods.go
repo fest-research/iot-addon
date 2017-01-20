@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"io/ioutil"
 	"net/http"
 
 	"github.com/emicklei/go-restful"
@@ -10,10 +11,10 @@ import (
 	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
 
 	apimachinery "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/client-go/pkg/api"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
-	"github.com/emicklei/go-restful/log"
 )
 
 var iotPodResource = &apimachinery.APIResource{Name: v1.IotPodType, Namespaced: true}
@@ -66,23 +67,57 @@ func (this PodService) Register(ws *restful.WebService) {
 }
 
 func (this PodService) updateStatus(req *restful.Request, resp *restful.Response) {
-	obj, err := this.proxy.Patch(&apimachinery.APIResource{}, "", api.JSONPatchType, []byte{})
-	if err != nil {
-		handleInternalServerError(resp, err)
-	}
+	namespace := req.PathParameter("namespace")
 
-	response, err := obj.MarshalJSON()
+	// Read update request
+	body, err := ioutil.ReadAll(req.Request.Body)
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
 	}
 
+	// Unmarshal request to pod object
+	pod := &apiv1.Pod{}
+	err = json.Unmarshal(body, pod)
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
+
+	// Transform pod to unstructured iot pod
+	unstructuredIotPod, err := this.podController.Transform(pod)
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
+
+	unstructured := unstructuredIotPod.(*unstructured.Unstructured)
+
+	// Update iot pod
+	unstructuredIotPod, err = this.proxy.Update(iotPodResource, unstructured, namespace)
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
+
+	// Transform response back to unstructured pod
+	response, err := this.podController.Transform(unstructuredIotPod)
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
+
+	r := response.([]byte)
+
 	resp.AddHeader("Content-Type", "application/json")
-	resp.Write(response)
+	resp.Write(r)
 }
 
 func (this PodService) getPod(req *restful.Request, resp *restful.Response) {
-	obj, err := this.proxy.Get(&apimachinery.APIResource{}, "")
+	namespace := req.PathParameter("namespace")
+	name := req.PathParameter("pod")
+
+	obj, err := this.proxy.Get(iotPodResource, namespace, name)
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
@@ -120,7 +155,6 @@ func (this PodService) listPods(req *restful.Request, resp *restful.Response) {
 }
 
 func (this PodService) watchPods(req *restful.Request, resp *restful.Response) {
-	log.Printf("WATCH PODS")
 	watcher, err := this.proxy.Watch(iotPodResource, &api.ListOptions{})
 	if err != nil {
 		handleInternalServerError(resp, err)

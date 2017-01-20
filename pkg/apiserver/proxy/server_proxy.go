@@ -16,8 +16,8 @@ type IServerProxy interface {
 	Create(*metav1.APIResource, *unstructured.Unstructured) (*unstructured.Unstructured, error)
 	Delete(*metav1.APIResource, string, *v1.DeleteOptions) error
 	Patch(*metav1.APIResource, string, api.PatchType, []byte) (*unstructured.Unstructured, error)
-	Update(*metav1.APIResource, *unstructured.Unstructured) (*unstructured.Unstructured, error)
-	Get(*metav1.APIResource, string) (*unstructured.Unstructured, error)
+	Update(*metav1.APIResource, *unstructured.Unstructured, string) (*unstructured.Unstructured, error)
+	Get(*metav1.APIResource, string, string) (*unstructured.Unstructured, error)
 	List(*metav1.APIResource, *api.ListOptions) (runtime.Object, error)
 	Watch(*metav1.APIResource, *api.ListOptions) (watch.Interface, error)
 }
@@ -38,11 +38,11 @@ func (this ServerProxy) List(resource *metav1.APIResource, listOptions *api.List
 	return this.tprClient.Resource(resource, api.NamespaceAll).List(listOptions)
 }
 
-func (this ServerProxy) Get(resource *metav1.APIResource, name string) (
+func (this ServerProxy) Get(resource *metav1.APIResource, namespace, name string) (
 	*unstructured.Unstructured, error) {
 	log.Printf("[Server proxy] GET resource: %s, namespaced: %t", resource.Name, resource.Namespaced)
 
-	return this.tprClient.Resource(resource, api.NamespaceAll).Get(name)
+	return this.tprClient.Resource(resource, namespace).Get(name)
 }
 
 func (this ServerProxy) Create(resource *metav1.APIResource, obj *unstructured.Unstructured) (
@@ -66,11 +66,11 @@ func (this ServerProxy) Patch(resource *metav1.APIResource, name string, pt api.
 	return this.tprClient.Resource(resource, api.NamespaceAll).Patch(name, pt, body)
 }
 
-func (this ServerProxy) Update(resource *metav1.APIResource, obj *unstructured.Unstructured) (
-	*unstructured.Unstructured, error) {
+func (this ServerProxy) Update(resource *metav1.APIResource, obj *unstructured.Unstructured,
+	namespace string) (*unstructured.Unstructured, error) {
 	log.Printf("[Server proxy] UPDATE resource: %v", obj)
 
-	return this.tprClient.Resource(resource, api.NamespaceAll).Update(obj)
+	return this.tprClient.Resource(resource, namespace).Update(obj)
 }
 
 func (this ServerProxy) Watch(resource *metav1.APIResource, listOptions *api.ListOptions) (

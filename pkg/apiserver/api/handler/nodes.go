@@ -108,7 +108,7 @@ func (this NodeService) listNodes(req *restful.Request, resp *restful.Response) 
 }
 
 func (this NodeService) updateStatus(req *restful.Request, resp *restful.Response) {
-	response, err := this.proxy.RawProxy.Post(req)
+	response, err := this.proxy.RawProxy.Patch(req)
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return

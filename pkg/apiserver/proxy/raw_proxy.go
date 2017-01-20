@@ -16,6 +16,7 @@ type IRawProxy interface {
 	Put(*restful.Request) ([]byte, error)
 	Get(*restful.Request) ([]byte, error)
 	Post(*restful.Request) ([]byte, error)
+	Patch(*restful.Request) ([]byte, error)
 	Watch(*restful.Request) watch.Watcher
 }
 
@@ -96,6 +97,32 @@ func (this RawProxy) Post(req *restful.Request) ([]byte, error) {
 	}
 
 	log.Printf("[Raw proxy] POST Response (%s): %s", requestPath, string(body))
+	return body, nil
+}
+
+func (this RawProxy) Patch(req *restful.Request) ([]byte, error) {
+	requestPath := this.serverAddress + this.removePathParams(req.Request.URL)
+
+	defer req.Request.Body.Close()
+	reqBody, err := ioutil.ReadAll(req.Request.Body)
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("[Raw proxy] PATCH Request (%s): %s", requestPath, string(reqBody))
+
+	r, err := http.NewRequest("PATCH", requestPath, bytes.NewReader(reqBody))
+	if err != nil {
+		return nil, err
+	}
+
+	defer r.Body.Close()
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("[Raw proxy] PATCH Response (%s): %s", requestPath, string(body))
 	return body, nil
 }
 
