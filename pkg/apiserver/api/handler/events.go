@@ -7,7 +7,6 @@ import (
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
 
 	kubeapi "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"fmt"
 )
 
 type EventService struct {
