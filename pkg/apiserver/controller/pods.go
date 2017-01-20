@@ -24,6 +24,12 @@ func (this PodController) Transform(in interface{}) (interface{}, error) {
 	case watch.Event:
 		event := in.(watch.Event)
 		return this.transformWatchEvent(event), nil
+	case *v1.IotPodList:
+		iotPodList := in.(*v1.IotPodList)
+		return this.toPodList(iotPodList), nil
+	case *v1.IotPod:
+		iotPod := in.(*v1.IotPod)
+		return this.toPod(iotPod), nil
 	default:
 		return nil, fmt.Errorf("Not supported type: %s", reflect.TypeOf(in))
 	}
@@ -31,7 +37,17 @@ func (this PodController) Transform(in interface{}) (interface{}, error) {
 
 func (this PodController) transformWatchEvent(event watch.Event) watch.Event {
 	iotPod := event.Object.(*v1.IotPod)
-	pod := kubeapi.Pod{}
+	event.Object = this.toPod(iotPod)
+	return event
+}
+
+func (this PodController) toPodList(iotPodList *v1.IotPodList) kubeapi.PodList {
+	log.Printf("toPodList() - %v", iotPodList)
+	return kubeapi.PodList{}
+}
+
+func (this PodController) toPod(iotPod *v1.IotPod) *kubeapi.Pod {
+	pod := &kubeapi.Pod{}
 
 	pod.Kind = "Pod"
 	pod.APIVersion = "v1"
@@ -46,8 +62,7 @@ func (this PodController) transformWatchEvent(event watch.Event) watch.Event {
 	pod.Status.Phase = kubeapi.PodPending
 	pod.Status.QOSClass = kubeapi.PodQOSBestEffort
 
-	event.Object = &pod
-	return event
+	return pod
 }
 
 func NewPodController() *PodController {

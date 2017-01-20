@@ -3,19 +3,18 @@ package handler
 import (
 	"net/http"
 
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"github.com/emicklei/go-restful"
 	"github.com/fest-research/iot-addon/pkg/apiserver/controller"
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
+	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
 )
 
 type NodeService struct {
-	proxy          proxy.IServerProxy
+	proxy          *proxy.Proxy
 	nodeController *controller.NodeController
 }
 
-func NewNodeService(proxy proxy.IServerProxy, controller *controller.NodeController) NodeService {
+func NewNodeService(proxy *proxy.Proxy, controller *controller.NodeController) NodeService {
 	return NodeService{proxy: proxy, nodeController: controller}
 }
 
@@ -67,10 +66,10 @@ func (this NodeService) Register(ws *restful.WebService) {
 }
 
 func (this NodeService) createNode(req *restful.Request, resp *restful.Response) {
-	// TODO: add the correct resource type
-	response, err := this.proxy.Post(req, v1.APIResource{})
+	response, err := this.proxy.RawProxy.Post(req)
 	if err != nil {
 		handleInternalServerError(resp, err)
+		return
 	}
 
 	resp.AddHeader("Content-Type", "application/json")
@@ -78,32 +77,42 @@ func (this NodeService) createNode(req *restful.Request, resp *restful.Response)
 }
 
 func (this NodeService) getNode(req *restful.Request, resp *restful.Response) {
-	response, err := this.proxy.Get(req, v1.APIResource{})
+	response, err := this.proxy.RawProxy.Get(req)
 	if err != nil {
 		handleInternalServerError(resp, err)
+		return
 	}
-
 	resp.AddHeader("Content-Type", "application/json")
 	resp.Write(response)
 }
 
 func (this NodeService) watchNodes(req *restful.Request, resp *restful.Response) {
+	watcher := this.proxy.RawProxy.Watch(req)
+	notifier := watch.NewRawNotifier()
+
+	err := notifier.Start(watcher, resp)
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
 }
 
 func (this NodeService) listNodes(req *restful.Request, resp *restful.Response) {
-	response, err := this.proxy.List(req, v1.APIResourceList{})
+	response, err := this.proxy.RawProxy.Get(req)
 	if err != nil {
 		handleInternalServerError(resp, err)
+		return
 	}
 	resp.AddHeader("Content-Type", "application/json")
 	resp.Write(response)
 }
 
 func (this NodeService) updateStatus(req *restful.Request, resp *restful.Response) {
-	updateResponse, err := this.proxy.Patch(req, v1.APIResource{})
+	response, err := this.proxy.RawProxy.Post(req)
 	if err != nil {
 		handleInternalServerError(resp, err)
+		return
 	}
 	resp.AddHeader("Content-Type", "application/json")
-	resp.Write(updateResponse)
+	resp.Write(response)
 }

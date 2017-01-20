@@ -5,15 +5,13 @@ import (
 
 	"github.com/emicklei/go-restful"
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
-
-	kubeapi "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type EventService struct {
-	proxy proxy.IServerProxy
+	proxy proxy.IRawProxy
 }
 
-func NewEventService(proxy proxy.IServerProxy) EventService {
+func NewEventService(proxy proxy.IRawProxy) EventService {
 	return EventService{proxy: proxy}
 }
 
@@ -38,22 +36,22 @@ func (this EventService) Register(ws *restful.WebService) {
 	)
 }
 
-
 func (this EventService) createEvent(req *restful.Request, resp *restful.Response) {
-	updateResponse, err := this.proxy.Post(req,kubeapi.APIResource{})
+	response, err := this.proxy.Post(req)
 	if err != nil {
 		handleInternalServerError(resp, err)
+		return
 	}
 	resp.AddHeader("Content-Type", "application/json")
-	resp.Write(updateResponse)
+	resp.Write(response)
 }
 
-
 func (this EventService) updateEvent(req *restful.Request, resp *restful.Response) {
-	updateResponse, err := this.proxy.Patch(req,kubeapi.APIResource{})
+	response, err := this.proxy.Post(req)
 	if err != nil {
 		handleInternalServerError(resp, err)
+		return
 	}
 	resp.AddHeader("Content-Type", "application/json")
-	resp.Write(updateResponse)
+	resp.Write(response)
 }

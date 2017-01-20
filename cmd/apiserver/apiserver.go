@@ -45,13 +45,13 @@ func main() {
 
 	// Create a client for the kubernetes apis
 	config := kube.NewClientConfig(*argApiserverHost, *argKubeconfig)
-	kubeClient := kube.NewDynamicClient(config)
+	tprClient := kube.NewDynamicClient(config)
 
 	// Create api installer
 	installer := api.APIInstaller{Root: rootPath, Version: version}
 
 	// Create api proxy TODO: poll server and check if address is correct
-	proxy := proxy.NewServerProxy(kubeClient, *argApiserverHost)
+	proxy := proxy.NewProxy(tprClient, *argApiserverHost)
 
 	// Create service factory
 	serviceFactory := handler.NewServiceFactory(proxy)

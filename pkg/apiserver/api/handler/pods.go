@@ -9,9 +9,14 @@ import (
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
 	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
 
-	kubeapi "k8s.io/apimachinery/pkg/apis/meta/v1"
+	apimachinery "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/client-go/pkg/api"
+	apiv1 "k8s.io/client-go/pkg/api/v1"
+	"github.com/emicklei/go-restful/log"
 )
+
+var iotPodResource = &apimachinery.APIResource{Name: v1.IotPodType, Namespaced: true}
 
 type PodService struct {
 	proxy         proxy.IServerProxy
@@ -61,28 +66,12 @@ func (this PodService) Register(ws *restful.WebService) {
 }
 
 func (this PodService) updateStatus(req *restful.Request, resp *restful.Response) {
-	updateResponse, err := this.proxy.Put(req, kubeapi.APIResource{})
+	obj, err := this.proxy.Patch(&apimachinery.APIResource{}, "", api.JSONPatchType, []byte{})
 	if err != nil {
 		handleInternalServerError(resp, err)
-		return
-	}
-	resp.AddHeader("Content-Type", "application/json")
-	resp.Write(updateResponse)
-}
-
-func (this PodService) getPod(req *restful.Request, resp *restful.Response) {
-	podResponse, err := this.proxy.Get(req, kubeapi.APIResource{})
-	if err != nil {
-		handleInternalServerError(resp, err)
-		return
 	}
 
-	resp.AddHeader("Content-Type", "application/json")
-	resp.Write(podResponse)
-}
-
-func (this PodService) listPods(req *restful.Request, resp *restful.Response) {
-	response, err := this.proxy.List(req, kubeapi.APIResourceList{})
+	response, err := obj.MarshalJSON()
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
@@ -92,9 +81,47 @@ func (this PodService) listPods(req *restful.Request, resp *restful.Response) {
 	resp.Write(response)
 }
 
+func (this PodService) getPod(req *restful.Request, resp *restful.Response) {
+	obj, err := this.proxy.Get(&apimachinery.APIResource{}, "")
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
+
+	response, err := obj.MarshalJSON()
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
+
+	resp.AddHeader("Content-Type", "application/json")
+	resp.Write(response)
+}
+
+func (this PodService) listPods(req *restful.Request, resp *restful.Response) {
+	iotPodList, err := this.proxy.List(iotPodResource, &api.ListOptions{})
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
+
+	podListInterface, err := this.podController.Transform(iotPodList)
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
+
+	podList := podListInterface.(apiv1.PodList)
+
+	response, _ := json.Marshal(podList)
+
+	resp.AddHeader("Content-Type", "application/json")
+	resp.Write(response)
+}
+
 func (this PodService) watchPods(req *restful.Request, resp *restful.Response) {
-	watcher, err := this.proxy.Watch(&kubeapi.APIResource{Name: v1.IotPodType, Namespaced: true},
-		&api.ListOptions{})
+	log.Printf("WATCH PODS")
+	watcher, err := this.proxy.Watch(iotPodResource, &api.ListOptions{})
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return

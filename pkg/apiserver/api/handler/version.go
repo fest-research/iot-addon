@@ -8,10 +8,10 @@ import (
 )
 
 type VersionService struct {
-	proxy proxy.IServerProxy
+	proxy proxy.IRawProxy
 }
 
-func NewVersionService(proxy proxy.IServerProxy) VersionService {
+func NewVersionService(proxy proxy.IRawProxy) VersionService {
 	return VersionService{proxy: proxy}
 }
 

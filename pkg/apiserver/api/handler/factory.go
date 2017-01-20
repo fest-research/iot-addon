@@ -10,11 +10,11 @@ type IServiceFactory interface {
 }
 
 type ServiceFactory struct {
-	proxy    proxy.IServerProxy
+	proxy    *proxy.Proxy
 	services []IService
 }
 
-func NewServiceFactory(proxy proxy.IServerProxy) *ServiceFactory {
+func NewServiceFactory(proxy *proxy.Proxy) *ServiceFactory {
 	factory := &ServiceFactory{proxy: proxy, services: make([]IService, 0)}
 	factory.init()
 
@@ -27,19 +27,19 @@ func (this *ServiceFactory) registerService(service IService) {
 
 func (this *ServiceFactory) init() {
 	// Version service
-	this.registerService(NewVersionService(this.proxy))
+	this.registerService(NewVersionService(this.proxy.RawProxy))
 
 	// Node service
 	this.registerService(NewNodeService(this.proxy, controller.NewNodeController()))
 
 	// Pod service
-	this.registerService(NewPodService(this.proxy, controller.NewPodController()))
+	this.registerService(NewPodService(this.proxy.ServerProxy, controller.NewPodController()))
 
 	// Event service
-	this.registerService(NewEventService(this.proxy))
+	this.registerService(NewEventService(this.proxy.RawProxy))
 
 	// Kubernetes service
-	this.registerService(NewKubeService(this.proxy))
+	this.registerService(NewKubeService(this.proxy.RawProxy))
 }
 
 func (this *ServiceFactory) GetRegisteredServices() []IService {

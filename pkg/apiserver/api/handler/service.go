@@ -5,14 +5,14 @@ import (
 
 	"github.com/emicklei/go-restful"
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
 )
 
 type KubeService struct {
-	proxy proxy.IServerProxy
+	proxy proxy.IRawProxy
 }
 
-func NewKubeService(proxy proxy.IServerProxy) KubeService {
+func NewKubeService(proxy proxy.IRawProxy) KubeService {
 	return KubeService{proxy: proxy}
 }
 
@@ -37,7 +37,8 @@ func (this KubeService) Register(ws *restful.WebService) {
 }
 
 func (this KubeService) listServices(req *restful.Request, resp *restful.Response) {
-	response, err := this.proxy.List(req, v1.APIResourceList{})
+
+	response, err := this.proxy.Get(req)
 	if err != nil {
 		handleInternalServerError(resp, err)
 	}
@@ -47,11 +48,12 @@ func (this KubeService) listServices(req *restful.Request, resp *restful.Respons
 }
 
 func (this KubeService) watchServices(req *restful.Request, resp *restful.Response) {
-	response, err := this.proxy.Get(req, v1.APIResource{})
+	watcher := this.proxy.Watch(req)
+	notifier := watch.NewRawNotifier()
+
+	err := notifier.Start(watcher, resp)
 	if err != nil {
 		handleInternalServerError(resp, err)
+		return
 	}
-
-	resp.AddHeader("Content-Type", "application/json")
-	resp.Write(response)
 }
