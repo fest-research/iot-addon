@@ -4,10 +4,12 @@ import (
 	"fmt"
 
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
+	"github.com/fest-research/iot-addon/pkg/kubernetes"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/pkg/api"
+	"k8s.io/client-go/rest"
 	"log"
 )
 
@@ -16,8 +18,8 @@ var iotDeviceResource = v1.APIResource{
 	Namespaced: true,
 }
 
-func WatchIotDevices(client *dynamic.Client) {
-	watcher, err := client.
+func WatchIotDevices(dynamicClient *dynamic.Client, restClient *rest.RESTClient) {
+	watcher, err := dynamicClient.
 		Resource(&iotDeviceResource, api.NamespaceAll).
 		Watch(&api.ListOptions{})
 
@@ -38,6 +40,9 @@ func WatchIotDevices(client *dynamic.Client) {
 
 		if e.Type == watch.Added {
 			log.Printf("Added %s\n", iotDevice.Metadata.SelfLink)
+			pods, _ := kubernetes.GetDeviceSelectedPods(*iotDevice, dynamicClient, restClient)
+			log.Printf("Device pods %s %v\n", iotDevice.Metadata.SelfLink, pods)
+			log.Printf("Device pods len %d\n", len(pods))
 		} else if e.Type == watch.Modified {
 			log.Printf("Modified %s\n", iotDevice.Metadata.SelfLink)
 		} else if e.Type == watch.Deleted {

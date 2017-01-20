@@ -22,6 +22,6 @@ func main() {
 	dynamicClient := kubernetes.NewDynamicClient(config)
 	restClient := kubernetes.NewRESTClient(config)
 
-	go watch.WatchIotDevices(dynamicClient)
+	go watch.WatchIotDevices(dynamicClient, restClient)
 	watch.WatchIotDaemonSet(dynamicClient, restClient)
 }

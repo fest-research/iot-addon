@@ -3,21 +3,14 @@ package kubernetes
 import (
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"log"
-	"k8s.io/apimachinery/pkg/labels"
+
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 	"fmt"
 
 )
 
-func GetDaemonSetsForAllDevices (restClient *rest.RESTClient, namespace string) ([]types.IotDaemonSet, error) {
-	return getGetDaemonSetsByDeviceSelector(restClient, namespace, types.DevicesAll)
-}
 
-
-func GetDaemonSetsForDevice (restClient *rest.RESTClient, namespace string, deviceName string) ([]types.IotDaemonSet, error) {
-	return getGetDaemonSetsByDeviceSelector(restClient, namespace, deviceName)
-}
 
 // GetDaemonSetSelectedDevices returns all IotDevices from selected namespace, that are specified
 // in IotDaemonSet with deviceSelector (IotDevice name or 'all').
@@ -54,18 +47,4 @@ restClient *rest.RESTClient) ([]types.IotPod, error) {
 		resultList = append(resultList, daemonSetPods...)
 	}
 	return resultList, nil
-}
-
-func getGetDaemonSetsByDeviceSelector(restClient *rest.RESTClient, namespace string, selectorValue string) ([]types.IotDaemonSet, error) {
-	var dsList types.IotDaemonSetList
-	err := restClient.Get().
-		Resource(types.IotDaemonSetType).
-		Namespace(namespace).LabelsSelectorParam(labels.Set{types.DeviceSelector: selectorValue}.AsSelector()).Do().
-		Into(&dsList)
-
-	if (err != nil) {
-		return nil, err
-	}
-
-	return dsList.Items, nil
 }

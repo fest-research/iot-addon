@@ -40,9 +40,9 @@ func WatchIotDaemonSet(dynamicClient *dynamic.Client, restClient *rest.RESTClien
 		if e.Type == watch.Added {
 			log.Printf("Added %s\n", ds.Metadata.SelfLink)
 			//kubernetes.CreateIotPods(*ds, dynamicClient, restClient)
-
-			kubernetes.GetDaemonSetsForAllDevices(restClient, ds.Metadata.Namespace)
-
+			pods, _ := kubernetes.GetDaemonSetSelectedPods(*ds, dynamicClient, restClient)
+			log.Printf("Device pods %s %v\n", ds.Metadata.SelfLink, pods)
+			log.Printf("Device pods len %d\n", len(pods))
 		} else if e.Type == watch.Modified {
 			log.Printf("Modified %s\n", ds.Metadata.SelfLink)
 		} else if e.Type == watch.Deleted {
