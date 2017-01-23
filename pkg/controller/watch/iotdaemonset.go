@@ -11,15 +11,11 @@ import (
 	"log"
 )
 
-var iotDaemonSetResource = v1.APIResource{
-	Name:       "iotdaemonsets",
-	Namespaced: true,
-}
-
 func WatchIotDaemonSet(dynamicClient *dynamic.Client, restClient *rest.RESTClient) {
-	watcher, err := dynamicClient.
-		Resource(&iotDaemonSetResource, api.NamespaceAll).
-		Watch(&api.ListOptions{})
+	watcher, err := dynamicClient.Resource(&v1.APIResource{
+		Name:       types.IotDaemonSetType,
+		Namespaced: true,
+	}, api.NamespaceAll).Watch(&api.ListOptions{})
 
 	if err != nil {
 		log.Println(err.Error())
@@ -37,10 +33,7 @@ func WatchIotDaemonSet(dynamicClient *dynamic.Client, restClient *rest.RESTClien
 		ds, _ := e.Object.(*types.IotDaemonSet)
 
 		if e.Type == watch.Added {
-			log.Printf("Added %s\n", ds.Metadata.SelfLink)
-			kubernetes.CreateIotPods(*ds, dynamicClient, restClient)
-			pods, _ := kubernetes.GetDaemonSetPods(restClient, *ds)
-			log.Printf("Daemon set pods lenght is %d\n", len(pods))
+			handleDaemonSetAddition(dynamicClient, restClient, *ds)
 		} else if e.Type == watch.Modified {
 			log.Printf("Modified %s\n", ds.Metadata.SelfLink)
 		} else if e.Type == watch.Deleted {
@@ -50,4 +43,11 @@ func WatchIotDaemonSet(dynamicClient *dynamic.Client, restClient *rest.RESTClien
 			break
 		}
 	}
+}
+
+func handleDaemonSetAddition(dynamicClient *dynamic.Client, restClient *rest.RESTClient, ds types.IotDaemonSet) {
+	log.Printf("Added %s\n", ds.Metadata.SelfLink)
+	kubernetes.CreatePods(ds, dynamicClient, restClient)
+	pods, _ := kubernetes.GetDaemonSetPods(restClient, ds)
+	log.Printf("Daemon set pods lenght is %d\n", len(pods))
 }

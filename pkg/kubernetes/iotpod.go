@@ -1,19 +1,19 @@
 package kubernetes
 
 import (
-	"log"
-
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/pkg/fields"
-
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/pkg/api/v1"
+	"k8s.io/client-go/pkg/fields"
 	"k8s.io/client-go/rest"
+	"log"
 )
 
-func CreateIotPods(ds types.IotDaemonSet, dynamicClient *dynamic.Client, restClient *rest.RESTClient) error {
+// CreatePods creates IotPods for IotDaemonSet if they already don't exist.
+func CreatePods(ds types.IotDaemonSet, dynamicClient *dynamic.Client, restClient *rest.RESTClient) error {
 	var pods []types.IotPod
 
 	devices, err := GetDaemonSetDevices(ds, dynamicClient, restClient)
@@ -22,25 +22,24 @@ func CreateIotPods(ds types.IotDaemonSet, dynamicClient *dynamic.Client, restCli
 		return err
 	}
 
-	// TODO Check if pods don't exist already!
-
 	for _, device := range devices {
-		pod := types.IotPod{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "IotPod",
-				APIVersion: ds.APIVersion,
-			},
-			Metadata: v1.ObjectMeta{
-				Name:      ds.Metadata.Name + "-" + string(common.NewUUID()),
-				Namespace: ds.Metadata.Namespace,
-				Labels: map[string]string{
-					types.CreatedBy:      types.IotDaemonSetType + "." + ds.Metadata.Name,
-					types.DeviceSelector: device.Metadata.Name,
+		if !IsPodCreated(restClient, ds, device) {
+			pods = append(pods, types.IotPod{
+				TypeMeta: metav1.TypeMeta{
+					Kind:       "IotPod",
+					APIVersion: ds.APIVersion,
 				},
-			},
-			Spec: ds.Spec.Template.Spec,
+				Metadata: v1.ObjectMeta{
+					Name:      ds.Metadata.Name + "-" + string(common.NewUUID()),
+					Namespace: ds.Metadata.Namespace,
+					Labels: map[string]string{
+						types.CreatedBy:      types.IotDaemonSetType + "." + ds.Metadata.Name,
+						types.DeviceSelector: device.Metadata.Name,
+					},
+				},
+				Spec: ds.Spec.Template.Spec,
+			})
 		}
-		pods = append(pods, pod)
 	}
 
 	for _, pod := range pods {
@@ -59,6 +58,25 @@ func CreateIotPods(ds types.IotDaemonSet, dynamicClient *dynamic.Client, restCli
 	}
 
 	return nil
+}
+
+// IsPodCreated checks if there is any IotPod created for IotDaemonSet on IotDevice.
+// TODO Check should check if IotPods are the same if they don't exist and update them then.
+func IsPodCreated(restClient *rest.RESTClient, ds types.IotDaemonSet, device types.IotDevice) bool {
+	var podList types.IotPodList
+
+	// Ignores error.
+	restClient.Get().
+		Resource(types.IotPodType).
+		Namespace(ds.Metadata.Namespace).
+		LabelsSelectorParam(labels.Set{
+			types.CreatedBy:      types.IotDaemonSetType + "." + ds.Metadata.Name,
+			types.DeviceSelector: device.Metadata.Name,
+		}.AsSelector()).
+		Do().
+		Into(&podList)
+
+	return len(podList.Items) > 0
 }
 
 // GetPodDevice returns IotDevice where IotPod is deployed. Method uses "deviceSelector" label from IotPod.
