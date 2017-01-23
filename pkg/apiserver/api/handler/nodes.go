@@ -40,7 +40,7 @@ func (this NodeService) Register(ws *restful.WebService) {
 	// Get Node
 	ws.Route(
 		ws.Method("GET").
-			Path("/nodes/{name}").
+			Path("/nodes/{node}").
 			To(this.getNode).
 			Returns(http.StatusOK, "OK", nil).
 			Writes(nil),
@@ -122,8 +122,9 @@ func (this NodeService) createNode(req *restful.Request, resp *restful.Response)
 }
 
 func (this NodeService) getNode(req *restful.Request, resp *restful.Response) {
-	namespace := req.PathParameter("namespace")
-	name := req.PathParameter("pod")
+	// TODO: refactor this later, set based on tenant
+	namespace := "default"
+	name := req.PathParameter("node")
 
 	obj, err := this.proxy.Get(iotDeviceResource, namespace, name)
 	if err != nil {
@@ -168,33 +169,8 @@ func (this NodeService) updateStatus(req *restful.Request, resp *restful.Respons
 		return
 	}
 
-	// Unmarshal request to a node object
-	node := &apiv1.Node{}
-	err = json.Unmarshal(body, node)
-	if err != nil {
-		handleInternalServerError(resp, err)
-		return
-	}
-
-	// TODO: pass the namespace in Transform() when it's refactored
-	node.ObjectMeta.Namespace = namespace
-
-	// Transform the node to an unstructured iot device
-	unstructuredIotDevice, err := this.nodeController.ToUnstructured(node)
-	if err != nil {
-		handleInternalServerError(resp, err)
-		return
-	}
-
-	content, err := json.Marshal(unstructuredIotDevice)
-	if err != nil {
-		handleInternalServerError(resp, err)
-		return
-	}
-
-	// Create the iot device
-	unstructuredIotDevice, err = this.proxy.Patch(iotDeviceResource, name,
-		api.JSONPatchType, content, namespace)
+	// Update the IoTDevice
+	unstructuredIotDevice, err := this.proxy.Patch(iotDeviceResource, name, api.MergePatchType, body, namespace)
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
