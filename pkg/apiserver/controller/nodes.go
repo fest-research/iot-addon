@@ -48,7 +48,7 @@ func (this NodeController) ToNode(iotDevice *v1.IotDevice) *kubeapi.Node {
 	node.Kind = "Node"
 	node.APIVersion = "v1"
 	node.Spec = iotDevice.Spec
-	//node.Status = iotDevice.Status
+	node.Status = iotDevice.Status
 	node.ObjectMeta = iotDevice.Metadata
 
 	node.ObjectMeta.Namespace = ""
@@ -63,7 +63,7 @@ func (this NodeController) ToIotDevice(node *kubeapi.Node) *v1.IotDevice {
 	iotDevice.Kind = "IotDevice"
 	iotDevice.APIVersion = "fujitsu.com/v1"
 	iotDevice.Metadata = node.ObjectMeta
-	//iotDevice.Status = node.Status
+	iotDevice.Status = node.Status
 	iotDevice.Spec = node.Spec
 
 	return iotDevice
