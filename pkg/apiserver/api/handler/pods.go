@@ -123,14 +123,16 @@ func (this PodService) getPod(req *restful.Request, resp *restful.Response) {
 		return
 	}
 
-	response, err := obj.MarshalJSON()
+	response, err := this.podController.Transform(obj)
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
 	}
 
+	r := response.([]byte)
+
 	resp.AddHeader("Content-Type", "application/json")
-	resp.Write(response)
+	resp.Write(r)
 }
 
 func (this PodService) listPods(req *restful.Request, resp *restful.Response) {
