@@ -1,7 +1,7 @@
 package v1
 
 const (
-	CreatedBy = "createdBy"
+	CreatedBy      = "createdBy"
 	DeviceSelector = "deviceSelector"
-	DevicesAll = "all"
+	DevicesAll     = "all"
 )
