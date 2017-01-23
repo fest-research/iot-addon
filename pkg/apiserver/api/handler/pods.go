@@ -10,10 +10,14 @@ import (
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
 	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
 
+	"fmt"
+
 	apimachinery "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/client-go/pkg/api"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
+	"k8s.io/client-go/pkg/fields"
 )
 
 var iotPodResource = &apimachinery.APIResource{Name: v1.IotPodType, Namespaced: true}
@@ -129,7 +133,19 @@ func (this PodService) getPod(req *restful.Request, resp *restful.Response) {
 }
 
 func (this PodService) listPods(req *restful.Request, resp *restful.Response) {
-	obj, err := this.proxy.List(iotPodResource, &api.ListOptions{})
+	labelSelector, err := this.parseLabelSelector(req)
+	if err != nil {
+		handleInternalServerError(resp, err)
+	}
+
+	fieldSelector, err := this.parseFieldSelector(req)
+	if err != nil {
+		handleInternalServerError(resp, err)
+	}
+	obj, err := this.proxy.List(iotPodResource, &api.ListOptions{
+		LabelSelector: *labelSelector,
+		FieldSelector: *fieldSelector,
+	})
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
@@ -144,7 +160,20 @@ func (this PodService) listPods(req *restful.Request, resp *restful.Response) {
 }
 
 func (this PodService) watchPods(req *restful.Request, resp *restful.Response) {
-	watcher, err := this.proxy.Watch(iotPodResource, &api.ListOptions{})
+	labelSelector, err := this.parseLabelSelector(req)
+	if err != nil {
+		handleInternalServerError(resp, err)
+	}
+
+	fieldSelector, err := this.parseFieldSelector(req)
+	if err != nil {
+		handleInternalServerError(resp, err)
+	}
+
+	watcher, err := this.proxy.Watch(iotPodResource, &api.ListOptions{
+		LabelSelector: *labelSelector,
+		FieldSelector: *fieldSelector,
+	})
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
@@ -160,4 +189,22 @@ func (this PodService) watchPods(req *restful.Request, resp *restful.Response) {
 		handleInternalServerError(resp, err)
 		return
 	}
+}
+
+func (this PodService) parseFieldSelector(req *restful.Request) (*fields.Selector, error) {
+	selectorString := req.QueryParameter("fieldSelector")
+	selector, err := fields.ParseSelector(selectorString)
+	if err != nil {
+		return nil, fmt.Errorf("[pod service] failed to parse field selector: %s", err)
+	}
+	return &selector, nil
+}
+
+func (this PodService) parseLabelSelector(req *restful.Request) (*labels.Selector, error) {
+	selectorString := req.QueryParameter("labelSelector")
+	selector, err := labels.Parse(selectorString)
+	if err != nil {
+		return nil, fmt.Errorf("[pod service] failed to parse label selector: %s", err)
+	}
+	return &selector, nil
 }

@@ -1,6 +1,8 @@
 package kubernetes
 
 import (
+	"log"
+
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -9,7 +11,6 @@ import (
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/pkg/fields"
 	"k8s.io/client-go/rest"
-	"log"
 )
 
 // CreateDaemonSetPods creates IotPods for IotDaemonSet if they already don't exist.
@@ -66,8 +67,8 @@ func DeleteDaemonSetPods(restClient *rest.RESTClient, ds types.IotDaemonSet) err
 		Resource(types.IotPodType).
 		Namespace(ds.Metadata.Namespace).
 		LabelsSelectorParam(labels.Set{
-			types.CreatedBy: types.IotDaemonSetType + "." + ds.Metadata.Name,
-		}.AsSelector()).
+		types.CreatedBy: types.IotDaemonSetType + "." + ds.Metadata.Name,
+	}.AsSelector()).
 		Do().
 		Error()
 }
@@ -81,9 +82,9 @@ func IsPodCreated(restClient *rest.RESTClient, ds types.IotDaemonSet, device typ
 		Resource(types.IotPodType).
 		Namespace(ds.Metadata.Namespace).
 		LabelsSelectorParam(labels.Set{
-			types.CreatedBy:      types.IotDaemonSetType + "." + ds.Metadata.Name,
-			types.DeviceSelector: device.Metadata.Name,
-		}.AsSelector()).
+		types.CreatedBy:      types.IotDaemonSetType + "." + ds.Metadata.Name,
+		types.DeviceSelector: device.Metadata.Name,
+	}.AsSelector()).
 		Do().
 		Into(&podList)
 

@@ -1,6 +1,8 @@
 package watch
 
 import (
+	"log"
+
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/kubernetes"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -8,7 +10,6 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/pkg/api"
 	"k8s.io/client-go/rest"
-	"log"
 )
 
 var iotDeviceResource = v1.APIResource{

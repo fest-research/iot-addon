@@ -115,7 +115,6 @@ func (this RawProxy) Patch(req *restful.Request) ([]byte, error) {
 	}
 	log.Printf("[Raw proxy] PATCH Request (%s): %s", requestPath, string(reqBody))
 
-
 	client := &http.Client{}
 	newReq, err := http.NewRequest("PATCH", requestPath, bytes.NewReader(reqBody))
 	if err != nil {
