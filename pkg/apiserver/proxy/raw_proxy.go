@@ -128,7 +128,6 @@ func (this RawProxy) Patch(req *restful.Request) ([]byte, error) {
 
 func (this RawProxy) Watch(req *restful.Request) watch.Watcher {
 	watcher := watch.NewRawWatcher()
-	// TODO map request path to third party resource watch path
 	requestPath := this.serverAddress + this.removePathParams(req.Request.URL)
 
 	go watcher.Watch(requestPath)

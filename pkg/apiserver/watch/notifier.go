@@ -3,7 +3,6 @@ package watch
 import (
 	"fmt"
 	"net/http"
-	"reflect"
 	"time"
 
 	"github.com/emicklei/go-restful"
@@ -18,12 +17,12 @@ import (
 var defaultTimeout = 10 * time.Minute
 
 type Notifier struct {
-	controllers []controller.Controller
+	controllers []controller.WatchEventController
 	timeout     time.Duration
 }
 
 // Controllers are executed in registration order
-func (this *Notifier) Register(controllers ...controller.Controller) {
+func (this *Notifier) Register(controllers ...controller.WatchEventController) {
 	this.controllers = append(this.controllers, controllers...)
 }
 
@@ -64,17 +63,7 @@ func (this *Notifier) Start(watcher watch.Interface, response *restful.Response)
 		case event := <-resultChan:
 			// Transform data if there are any controllers registered
 			for _, controller := range this.controllers {
-				transformed, err := controller.Transform(event)
-				if err != nil {
-					return err
-				}
-
-				// We are expecting same type as we provided
-				event, ok = transformed.(watch.Event)
-				if !ok {
-					return fmt.Errorf("Transformation type mismatch. Provided: %s, got: %s",
-						reflect.TypeOf(event), reflect.TypeOf(transformed))
-				}
+				event = controller.TransformWatchEvent(event)
 			}
 
 			// Our event has correct json annotations for watch event.
@@ -105,5 +94,5 @@ func (this Notifier) toEvent(event watch.Event) v1.Event {
 }
 
 func NewNotifier() *Notifier {
-	return &Notifier{controllers: make([]controller.Controller, 0), timeout: defaultTimeout}
+	return &Notifier{controllers: make([]controller.WatchEventController, 0), timeout: defaultTimeout}
 }

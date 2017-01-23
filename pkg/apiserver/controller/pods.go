@@ -1,9 +1,6 @@
 package controller
 
 import (
-	"fmt"
-	"reflect"
-
 	"github.com/fest-research/iot-addon/pkg/api/v1"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -12,57 +9,41 @@ import (
 	kubeapi "k8s.io/client-go/pkg/api/v1"
 )
 
-type Controller interface {
-	// TODO: introduce into variable for more clear object transformation
-	Transform(interface{}) (interface{}, error)
+type IPodController interface {
+	// TransformWatchEvent implements WatchEventController.
+	TransformWatchEvent(watch.Event) watch.Event
+
+	ToPodList(*v1.IotPodList) *kubeapi.PodList
+	ToPod(*v1.IotPod) *kubeapi.Pod
+	ToIotPod(*kubeapi.Pod) *v1.IotPod
+	ToUnstructured(*kubeapi.Pod) (*unstructured.Unstructured, error)
+	ToBytes(*unstructured.Unstructured) ([]byte, error)
 }
 
-type PodController struct{}
+type podController struct{}
 
-func (this PodController) Transform(in interface{}) (interface{}, error) {
-	switch in.(type) {
-	case watch.Event:
-		event := in.(watch.Event)
-		return this.transformWatchEvent(event), nil
-	case *v1.IotPodList:
-		iotPodList := in.(*v1.IotPodList)
-		return this.toPodList(iotPodList), nil
-	case *v1.IotPod:
-		iotPod := in.(*v1.IotPod)
-		return this.toPod(iotPod), nil
-	case *kubeapi.Pod:
-		pod := in.(*kubeapi.Pod)
-		return this.toUnstructured(pod)
-	case *unstructured.Unstructured:
-		unstructured := in.(*unstructured.Unstructured)
-		return this.toBytes(unstructured)
-	default:
-		return nil, fmt.Errorf("Not supported type: %s", reflect.TypeOf(in))
-	}
-}
-
-func (this PodController) transformWatchEvent(event watch.Event) watch.Event {
+func (this podController) TransformWatchEvent(event watch.Event) watch.Event {
 	iotPod := event.Object.(*v1.IotPod)
-	event.Object = this.toPod(iotPod)
+	event.Object = this.ToPod(iotPod)
 	return event
 }
 
-func (this PodController) toPodList(iotPodList *v1.IotPodList) kubeapi.PodList {
-	podList := kubeapi.PodList{}
+func (this podController) ToPodList(iotPodList *v1.IotPodList) *kubeapi.PodList {
+	podList := &kubeapi.PodList{}
 
 	podList.Kind = "PodList"
 	podList.APIVersion = "v1"
 	podList.Items = make([]kubeapi.Pod, 0)
 
 	for _, iotPod := range iotPodList.Items {
-		pod := this.toPod(&iotPod)
+		pod := this.ToPod(&iotPod)
 		podList.Items = append(podList.Items, *pod)
 	}
 
 	return podList
 }
 
-func (this PodController) toPod(iotPod *v1.IotPod) *kubeapi.Pod {
+func (this podController) ToPod(iotPod *v1.IotPod) *kubeapi.Pod {
 	pod := &kubeapi.Pod{}
 
 	pod.Kind = "Pod"
@@ -81,7 +62,7 @@ func (this PodController) toPod(iotPod *v1.IotPod) *kubeapi.Pod {
 	return pod
 }
 
-func (this PodController) toIotPod(pod *kubeapi.Pod) *v1.IotPod {
+func (this podController) ToIotPod(pod *kubeapi.Pod) *v1.IotPod {
 	iotPod := &v1.IotPod{}
 
 	iotPod.Kind = "IotPod"
@@ -94,9 +75,9 @@ func (this PodController) toIotPod(pod *kubeapi.Pod) *v1.IotPod {
 }
 
 // Converts pod to unstructured iot pod
-func (this PodController) toUnstructured(pod *kubeapi.Pod) (*unstructured.Unstructured, error) {
+func (this podController) ToUnstructured(pod *kubeapi.Pod) (*unstructured.Unstructured, error) {
 	result := &unstructured.Unstructured{}
-	iotPod := this.toIotPod(pod)
+	iotPod := this.ToIotPod(pod)
 
 	marshalledIotPod, err := json.Marshal(iotPod)
 	if err != nil {
@@ -112,7 +93,7 @@ func (this PodController) toUnstructured(pod *kubeapi.Pod) (*unstructured.Unstru
 }
 
 // Converts unstructured iot pod to pod json bytes array
-func (this PodController) toBytes(unstructured *unstructured.Unstructured) ([]byte, error) {
+func (this podController) ToBytes(unstructured *unstructured.Unstructured) ([]byte, error) {
 	marshalledIotPod, err := unstructured.MarshalJSON()
 	if err != nil {
 		return nil, err
@@ -124,7 +105,7 @@ func (this PodController) toBytes(unstructured *unstructured.Unstructured) ([]by
 		return nil, err
 	}
 
-	pod := this.toPod(iotPod)
+	pod := this.ToPod(iotPod)
 	marshalledPod, err := json.Marshal(pod)
 	if err != nil {
 		return nil, err
@@ -133,6 +114,6 @@ func (this PodController) toBytes(unstructured *unstructured.Unstructured) ([]by
 	return marshalledPod, nil
 }
 
-func NewPodController() *PodController {
-	return &PodController{}
+func NewPodController() IPodController {
+	return &podController{}
 }

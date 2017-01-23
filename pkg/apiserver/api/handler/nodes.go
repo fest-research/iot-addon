@@ -11,7 +11,6 @@ import (
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
 	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
 	apimachinery "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
 
@@ -19,10 +18,10 @@ var iotDeviceResource = &apimachinery.APIResource{Name: v1.IotDeviceType, Namesp
 
 type NodeService struct {
 	proxy          *proxy.Proxy
-	nodeController *controller.NodeController
+	nodeController controller.INodeController
 }
 
-func NewNodeService(proxy *proxy.Proxy, controller *controller.NodeController) NodeService {
+func NewNodeService(proxy *proxy.Proxy, controller controller.INodeController) NodeService {
 	return NodeService{proxy: proxy, nodeController: controller}
 }
 
@@ -96,32 +95,28 @@ func (this NodeService) createNode(req *restful.Request, resp *restful.Response)
 	node.ObjectMeta.Namespace = namespace
 
 	// Transform the node to an unstructured iot device
-	unstructuredIotDevice, err := this.nodeController.Transform(node)
+	unstructuredIotDevice, err := this.nodeController.ToUnstructured(node)
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
 	}
 
-	unstructured := unstructuredIotDevice.(*unstructured.Unstructured)
-
 	// Create the iot device
-	unstructuredIotDevice, err = this.proxy.ServerProxy.Create(iotDeviceResource, unstructured, namespace)
+	unstructuredIotDevice, err = this.proxy.ServerProxy.Create(iotDeviceResource, unstructuredIotDevice, namespace)
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
 	}
 
 	// Transform response back to unstructured pod
-	response, err := this.nodeController.Transform(unstructuredIotDevice)
+	response, err := this.nodeController.ToBytes(unstructuredIotDevice)
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
 	}
 
-	r := response.([]byte)
-
 	resp.AddHeader("Content-Type", "application/json")
-	resp.Write(r)
+	resp.Write(response)
 }
 
 func (this NodeService) getNode(req *restful.Request, resp *restful.Response) {

@@ -2,64 +2,50 @@ package controller
 
 import (
 	"encoding/json"
-	"fmt"
-	"reflect"
 
-	"github.com/emicklei/go-restful/log"
 	"github.com/fest-research/iot-addon/pkg/api/v1"
+
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/watch"
+
 	kubeapi "k8s.io/client-go/pkg/api/v1"
 )
 
-type NodeController struct{}
+type INodeController interface {
+	// TransformWatchEvent implements WatchEventController.
+	TransformWatchEvent(event watch.Event) watch.Event
 
-func (this *NodeController) Transform(in interface{}) (interface{}, error) {
-	log.Print("NodeController - Transform()")
-
-	switch in.(type) {
-	case watch.Event:
-		event := in.(watch.Event)
-		return this.transformWatchEvent(event), nil
-	case *v1.IotDeviceList:
-		iotDeviceList := in.(*v1.IotDeviceList)
-		return this.toNodeList(iotDeviceList), nil
-	case *v1.IotDevice:
-		iotDevice := in.(*v1.IotDevice)
-		return this.toNode(iotDevice), nil
-	case *kubeapi.Node:
-		node := in.(*kubeapi.Node)
-		return this.toUnstructured(node)
-	case *unstructured.Unstructured:
-		unstructured := in.(*unstructured.Unstructured)
-		return this.toBytes(unstructured)
-	default:
-		return nil, fmt.Errorf("Not supported type: %s", reflect.TypeOf(in))
-	}
+	ToNodeList(*v1.IotDeviceList) *kubeapi.NodeList
+	ToNode(*v1.IotDevice) *kubeapi.Node
+	ToIotDevice(*kubeapi.Node) *v1.IotDevice
+	ToUnstructured(*kubeapi.Node) (*unstructured.Unstructured, error)
+	ToBytes(*unstructured.Unstructured) ([]byte, error)
 }
 
-func (this *NodeController) transformWatchEvent(event watch.Event) watch.Event {
+type NodeController struct{}
+
+func (this NodeController) TransformWatchEvent(event watch.Event) watch.Event {
 	iotDevice := event.Object.(*v1.IotDevice)
-	event.Object = this.toNode(iotDevice)
+	event.Object = this.ToNode(iotDevice)
 	return event
 }
 
-func (this *NodeController) toNodeList(iotDeviceList *v1.IotDeviceList) kubeapi.NodeList {
-	nodeList := kubeapi.NodeList{}
+func (this NodeController) ToNodeList(iotDeviceList *v1.IotDeviceList) *kubeapi.NodeList {
+	nodeList := &kubeapi.NodeList{}
 
 	nodeList.Kind = "NodeList"
 	nodeList.APIVersion = "v1"
 	nodeList.Items = make([]kubeapi.Node, 0)
 
 	for _, iotDevice := range iotDeviceList.Items {
-		node := this.toNode(&iotDevice)
+		node := this.ToNode(&iotDevice)
 		nodeList.Items = append(nodeList.Items, *node)
 	}
 
 	return nodeList
 }
 
-func (this *NodeController) toNode(iotDevice *v1.IotDevice) *kubeapi.Node {
+func (this NodeController) ToNode(iotDevice *v1.IotDevice) *kubeapi.Node {
 	node := &kubeapi.Node{}
 
 	// TODO: subject to revision
@@ -72,7 +58,7 @@ func (this *NodeController) toNode(iotDevice *v1.IotDevice) *kubeapi.Node {
 	return node
 }
 
-func (this *NodeController) toIotDevice(node *kubeapi.Node) *v1.IotDevice {
+func (this NodeController) ToIotDevice(node *kubeapi.Node) *v1.IotDevice {
 	iotDevice := &v1.IotDevice{}
 
 	// TODO: subject to revision
@@ -86,9 +72,9 @@ func (this *NodeController) toIotDevice(node *kubeapi.Node) *v1.IotDevice {
 }
 
 // Converts node to unstructured iot device
-func (this *NodeController) toUnstructured(node *kubeapi.Node) (*unstructured.Unstructured, error) {
+func (this NodeController) ToUnstructured(node *kubeapi.Node) (*unstructured.Unstructured, error) {
 	result := &unstructured.Unstructured{}
-	iotDevice := this.toIotDevice(node)
+	iotDevice := this.ToIotDevice(node)
 
 	marshalledIotDevice, err := json.Marshal(iotDevice)
 	if err != nil {
@@ -104,7 +90,7 @@ func (this *NodeController) toUnstructured(node *kubeapi.Node) (*unstructured.Un
 }
 
 // Converts unstructured iot device to node json bytes array
-func (this *NodeController) toBytes(unstructured *unstructured.Unstructured) ([]byte, error) {
+func (this NodeController) ToBytes(unstructured *unstructured.Unstructured) ([]byte, error) {
 	marshalledIotDevice, err := unstructured.MarshalJSON()
 	if err != nil {
 		return nil, err
@@ -116,7 +102,7 @@ func (this *NodeController) toBytes(unstructured *unstructured.Unstructured) ([]
 		return nil, err
 	}
 
-	node := this.toNode(iotDevice)
+	node := this.ToNode(iotDevice)
 	marshalledNode, err := json.Marshal(node)
 	if err != nil {
 		return nil, err
@@ -125,6 +111,6 @@ func (this *NodeController) toBytes(unstructured *unstructured.Unstructured) ([]
 	return marshalledNode, nil
 }
 
-func NewNodeController() *NodeController {
+func NewNodeController() INodeController {
 	return &NodeController{}
 }

@@ -9,7 +9,6 @@ import (
 )
 
 // Interface can be implemented by anything that knows how to watch and report changes.
-// TODO: we might want to use some object type instead of chan string
 type Watcher interface {
 	Watch(string)
 
