@@ -51,6 +51,8 @@ func (this NodeController) ToNode(iotDevice *v1.IotDevice) *kubeapi.Node {
 	//node.Status = iotDevice.Status
 	node.ObjectMeta = iotDevice.Metadata
 
+	node.ObjectMeta.Namespace = ""
+
 	return node
 }
 
@@ -109,31 +111,32 @@ func (this NodeController) ToBytes(unstructured *unstructured.Unstructured) ([]b
 	return marshalledNode, nil
 }
 
-func NewNodeController() INodeController {
-	return &NodeController{}
-}
-
-// TODO: find a better way to deal with this
+// TODO find a better way to deal with this
 func fixImageSizeNotation(unstructured *unstructured.Unstructured) *unstructured.Unstructured {
 	statusInterface := unstructured.Object["status"]
 	statusMap := statusInterface.(map[string]interface{})
 
 	imagesInterface := statusMap["images"]
-	if imagesInterface != nil {
-		imagesInterfaces := imagesInterface.([]interface{})
+	if imagesInterface == nil {
+		return unstructured
+	}
 
-		for _, imageInterface := range imagesInterfaces {
-			imageMap := imageInterface.(map[string]interface{})
-			// TODO: convert to decimal notation
-			sizeInterface := imageMap["sizeBytes"]
-			switch sizeInterface.(type) {
-			case float64:
-				sizeBytes := sizeInterface.(float64)
-				sizeBytesInt := int64(sizeBytes)
-				imageMap["sizeBytes"] = sizeBytesInt
-			}
+	imagesInterfaces := imagesInterface.([]interface{})
+
+	for _, imageInterface := range imagesInterfaces {
+		imageMap := imageInterface.(map[string]interface{})
+		sizeInterface := imageMap["sizeBytes"]
+		switch sizeInterface.(type) {
+		case float64:
+			sizeBytes := sizeInterface.(float64)
+			sizeBytesInt := int64(sizeBytes)
+			imageMap["sizeBytes"] = sizeBytesInt
 		}
 	}
 
 	return unstructured
+}
+
+func NewNodeController() INodeController {
+	return &NodeController{}
 }

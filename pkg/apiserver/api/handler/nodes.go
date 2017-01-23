@@ -74,6 +74,7 @@ func (this NodeService) Register(ws *restful.WebService) {
 	)
 }
 
+// TODO: refactor this method
 func (this NodeService) createNode(req *restful.Request, resp *restful.Response) {
 	// TODO: refactor this later, set based on tenant
 	namespace := "default"
@@ -96,18 +97,21 @@ func (this NodeService) createNode(req *restful.Request, resp *restful.Response)
 	// TODO: pass the namespace in Transform() when it's refactored
 	node.ObjectMeta.Namespace = namespace
 
-	// Transform the node to an unstructured iot device
-	unstructuredIotDevice, err := this.nodeController.ToUnstructured(node)
+	unstructuredIotDevice, err := this.proxy.Get(iotDeviceResource, namespace, node.Name)
 	if err != nil {
-		handleInternalServerError(resp, err)
-		return
-	}
+		// Transform the node to an unstructured iot device
+		unstructuredIotDevice, err = this.nodeController.ToUnstructured(node)
+		if err != nil {
+			handleInternalServerError(resp, err)
+			return
+		}
 
-	// Create the iot device
-	unstructuredIotDevice, err = this.proxy.Create(iotDeviceResource, unstructuredIotDevice, namespace)
-	if err != nil {
-		handleInternalServerError(resp, err)
-		return
+		// Create the iot device
+		unstructuredIotDevice, err = this.proxy.Create(iotDeviceResource, unstructuredIotDevice, namespace)
+		if err != nil {
+			handleInternalServerError(resp, err)
+			return
+		}
 	}
 
 	// Transform response back to unstructured pod
