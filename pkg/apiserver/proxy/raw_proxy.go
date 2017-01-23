@@ -60,7 +60,10 @@ func (this RawProxy) Put(req *restful.Request) ([]byte, error) {
 
 	client := &http.Client{}
 	newReq, err := http.NewRequest("PUT", requestPath, bytes.NewReader(reqBody))
-	r, _ := client.Do(newReq)
+	if err != nil {
+		return nil, err
+	}
+	r, err := client.Do(newReq)
 	if err != nil {
 		return nil, err
 	}
@@ -115,8 +118,11 @@ func (this RawProxy) Patch(req *restful.Request) ([]byte, error) {
 
 	client := &http.Client{}
 	newReq, err := http.NewRequest("PATCH", requestPath, bytes.NewReader(reqBody))
+	if err != nil {
+		return nil, err
+	}
 	newReq.Header.Add("Content-Type", "application/strategic-merge-patch+json")
-	r, _ := client.Do(newReq)
+	r, err := client.Do(newReq)
 	if err != nil {
 		return nil, err
 	}
