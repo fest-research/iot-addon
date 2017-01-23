@@ -40,7 +40,7 @@ func WatchIotDevices(dynamicClient *dynamic.Client, restClient *rest.RESTClient)
 
 		if e.Type == watch.Added {
 			log.Printf("Added %s\n", iotDevice.Metadata.SelfLink)
-			pods, _ := kubernetes.GetDeviceSelectedPods(*iotDevice, dynamicClient, restClient)
+			pods, _ := kubernetes.GetDevicePods(restClient, *iotDevice)
 			log.Printf("Device pods %s %v\n", iotDevice.Metadata.SelfLink, pods)
 			log.Printf("Device pods len %d\n", len(pods))
 		} else if e.Type == watch.Modified {

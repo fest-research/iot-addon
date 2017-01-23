@@ -597,6 +597,12 @@
 			"revisionTime": "2017-01-13T21:23:46Z"
 		},
 		{
+			"checksumSHA1": "HApQAO0GgBB+HN6vwqrlxa2pfLI=",
+			"path": "k8s.io/apimachinery/pkg/fields",
+			"revision": "2dbdb51f18568f4e1382983b298763ca52d73882",
+			"revisionTime": "2017-01-20T20:37:13Z"
+		},
+		{
 			"checksumSHA1": "ZWbuvGLOmpu1mMU3ATYpupw6unU=",
 			"path": "k8s.io/apimachinery/pkg/genericapiserver/openapi/common",
 			"revision": "40b9317c36d3e02d20da77c4233f4a22af6831f8",
@@ -1221,5 +1227,5 @@
 			"revisionTime": "2017-01-17T15:19:43Z"
 		}
 	],
-	"rootPath": "github.com/fest-research/IoT-apiserver"
+	"rootPath": "github.com/fest-research/iot-addon"
 }

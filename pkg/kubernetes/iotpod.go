@@ -4,6 +4,8 @@ import (
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/pkg/fields"
+
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/pkg/api"
 	"k8s.io/client-go/pkg/api/v1"
@@ -14,7 +16,7 @@ import (
 func CreateIotPods(ds types.IotDaemonSet, dynamicClient *dynamic.Client,
 	restClient *rest.RESTClient) error {
 	var pods []types.IotPod
-	devices, err := GetDaemonSetSelectedDevices(ds, dynamicClient, restClient)
+	devices, err := GetDaemonSetDevices(ds, dynamicClient, restClient)
 
 	if err != nil {
 		return err
@@ -31,7 +33,7 @@ func CreateIotPods(ds types.IotDaemonSet, dynamicClient *dynamic.Client,
 			Metadata: v1.ObjectMeta{
 				Name:      ds.Metadata.Name + "-" + string(common.NewUUID()),
 				Namespace: ds.Metadata.Namespace,
-				Annotations: map[string]string{
+				Labels: map[string]string{
 					api.CreatedByAnnotation: ds.Metadata.SelfLink,
 					types.DeviceSelector:    device.Metadata.Name,
 				},
@@ -59,35 +61,46 @@ func CreateIotPods(ds types.IotDaemonSet, dynamicClient *dynamic.Client,
 	return nil
 }
 
-func GetIotPods(dynamicClient *dynamic.Client, namespace string, createdBy string, deviceSelector string) ([]types.IotPod, error) {
-	var resultList []types.IotPod
-
-	pods, err := dynamicClient.Resource(&metav1.APIResource{
-		Name:       types.IotPodType,
-		Namespaced: namespace != api.NamespaceNone,
-	}, namespace).List(&v1.ListOptions{})
-
-	if err != nil {
-		return nil, err
-	}
-
-	items := pods.(*types.IotPodList).Items
-
-	for _, item := range items {
-		createdByFromPod, okCreatedBy := item.Metadata.Annotations[api.CreatedByAnnotation]
-		deviceSelectorFromPod, okDeviceSelector := item.Metadata.Annotations[types.DeviceSelector]
-
-		if (okCreatedBy && okDeviceSelector) {
-			if (createdBy == createdByFromPod && deviceSelector == deviceSelectorFromPod) {
-				resultList = append(resultList, item)
-			}
-		}
-	}
-	return resultList, nil
-}
-
 // TODO Add function to retrieve related devices. Devices for pod can be discovered using
 // "deviceSelector" label from pod (it's copied from daemon set during pod creation).
+func GetPodDevice(restClient *rest.RESTClient, pod types.IotPod) (types.IotDevice, error)  {
+	var device types.IotDevice
+
+	fieldSelector, err := fields.ParseSelector("metadata.name=" + pod.Metadata.Labels[types.DeviceSelector])
+
+	if err != nil {
+		return device, err
+	}
+
+	err = restClient.Get().
+		Resource(types.IotDeviceType).
+		Namespace(device.Metadata.Namespace).
+		FieldsSelectorParam(fieldSelector).
+		Do().
+		Into(&device)
+
+	return device, err
+}
+
+
 
 // TODO Add function to retrieve related daemon sets. Daemon sets can be discovered using
 // "createdBy" label from pod.
+func GetPodDaemonSet(restClient *rest.RESTClient, pod types.IotPod) (types.IotDaemonSet, error) {
+	var ds types.IotDaemonSet
+
+	fieldSelector, err := fields.ParseSelector("metadata.selfLink=" + pod.Metadata.Labels[api.CreatedByAnnotation])
+
+	if err != nil {
+		return ds, err
+	}
+
+	err = restClient.Get().
+		Resource(types.IotDaemonSetType).
+		Namespace(ds.Metadata.Namespace).
+		FieldsSelectorParam(fieldSelector).
+		Do().
+		Into(&ds)
+
+	return ds, err
+}
