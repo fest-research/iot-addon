@@ -12,8 +12,10 @@ import (
 	"log"
 )
 
-// CreatePods creates IotPods for IotDaemonSet if they already don't exist.
-func CreatePods(ds types.IotDaemonSet, dynamicClient *dynamic.Client, restClient *rest.RESTClient) error {
+// CreateDaemonSetPods creates IotPods for IotDaemonSet if they already don't exist.
+// TODO Split into template filling and obect creation methods.
+// TODO Check should check if IotPods are the same if they don't exist and update them then.
+func CreateDaemonSetPods(ds types.IotDaemonSet, dynamicClient *dynamic.Client, restClient *rest.RESTClient) error {
 	var pods []types.IotPod
 
 	devices, err := GetDaemonSetDevices(ds, dynamicClient, restClient)
@@ -58,8 +60,19 @@ func CreatePods(ds types.IotDaemonSet, dynamicClient *dynamic.Client, restClient
 	return nil
 }
 
+func DeleteDaemonSetPods(restClient *rest.RESTClient, ds types.IotDaemonSet) error {
+	log.Printf("Deleting pods created by %s %s\n", ds.Metadata.Name, ds.TypeMeta.Kind)
+	return restClient.Delete().
+		Resource(types.IotPodType).
+		Namespace(ds.Metadata.Namespace).
+		LabelsSelectorParam(labels.Set{
+			types.CreatedBy: types.IotDaemonSetType + "." + ds.Metadata.Name,
+		}.AsSelector()).
+		Do().
+		Error()
+}
+
 // IsPodCreated checks if there is any IotPod created for IotDaemonSet on IotDevice.
-// TODO Check should check if IotPods are the same if they don't exist and update them then.
 func IsPodCreated(restClient *rest.RESTClient, ds types.IotDaemonSet, device types.IotDevice) bool {
 	var podList types.IotPodList
 
