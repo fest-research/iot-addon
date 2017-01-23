@@ -16,28 +16,22 @@ func GetAllDevices(dynamicClient *dynamic.Client, namespace string) ([]types.Iot
 		Name:       types.IotDeviceType,
 		Namespaced: namespace != api.NamespaceNone,
 	}, namespace).List(&v1.ListOptions{})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return devices.(*types.IotDeviceList).Items, nil
+	return devices.(*types.IotDeviceList).Items, err
 }
 
 // GetAllDevices returns IotDevice with selected name from selected namespace.
 func GetDevice(restClient *rest.RESTClient, name, namespace string) types.IotDevice {
 	var device types.IotDevice
-
 	restClient.Get().
 		Resource(types.IotDeviceType).
 		Namespace(namespace).
 		Name(name).
 		Do().
 		Into(&device)
-
 	return device
 }
 
+// TODO ?
 func GetDeviceDaemonSets(restClient *rest.RESTClient, device types.IotDevice) ([]types.IotDaemonSet, error) {
 	var dsList types.IotDaemonSetList
 	var resList []types.IotDaemonSet
@@ -81,10 +75,5 @@ func GetDevicePods(restClient *rest.RESTClient, device types.IotDevice) ([]types
 			AsSelector()).
 		Do().
 		Into(&podList)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return podList.Items, nil
+	return podList.Items, err
 }

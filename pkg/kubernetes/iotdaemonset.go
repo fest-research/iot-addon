@@ -3,9 +3,9 @@ package kubernetes
 import (
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/rest"
 )
 
@@ -25,20 +25,15 @@ func GetDaemonSetDevices(ds types.IotDaemonSet, dynamicClient *dynamic.Client,
 
 func GetDaemonSetPods(restClient *rest.RESTClient, ds types.IotDaemonSet) ([]types.IotPod, error) {
 	var podList types.IotPodList
-
 	err := restClient.Get().
 		Resource(types.IotPodType).
 		Namespace(ds.Metadata.Namespace).
-		LabelsSelectorParam(labels.Set{types.CreatedBy: types.IotDaemonSetType + "." + ds.Metadata.Name}.
-			AsSelector()).
+		LabelsSelectorParam(labels.Set{
+			types.CreatedBy: types.IotDaemonSetType + "." + ds.Metadata.Name,
+		}.AsSelector()).
 		Do().
 		Into(&podList)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return podList.Items, nil
+	return podList.Items, err
 }
 
 func DaemonSetToPod(ds types.IotDaemonSet) types.IotPod {

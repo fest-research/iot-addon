@@ -35,19 +35,27 @@ func WatchIotDaemonSet(dynamicClient *dynamic.Client, restClient *rest.RESTClien
 		if e.Type == watch.Added {
 			handleDaemonSetAddition(dynamicClient, restClient, *ds)
 		} else if e.Type == watch.Modified {
-			log.Printf("Modified %s\n", ds.Metadata.SelfLink)
+			handleDaemonSetModification(dynamicClient, restClient, *ds)
 		} else if e.Type == watch.Deleted {
-			log.Printf("Deleted %s\n", ds.Metadata.SelfLink)
+			handleDaemonSetDeletion(dynamicClient, restClient, *ds)
 		} else if e.Type == watch.Error {
-			log.Println("Error")
+			log.Printf("Ending %s watch due to an error\n", types.IotDaemonSetType)
 			break
 		}
 	}
 }
 
 func handleDaemonSetAddition(dynamicClient *dynamic.Client, restClient *rest.RESTClient, ds types.IotDaemonSet) {
-	log.Printf("Added %s\n", ds.Metadata.SelfLink)
+	log.Printf("Added %s, creating pods...\n", ds.Metadata.SelfLink)
 	kubernetes.CreatePods(ds, dynamicClient, restClient)
-	pods, _ := kubernetes.GetDaemonSetPods(restClient, ds)
-	log.Printf("Daemon set pods lenght is %d\n", len(pods))
+}
+
+func handleDaemonSetModification(dynamicClient *dynamic.Client, restClient *rest.RESTClient, ds types.IotDaemonSet) {
+	log.Printf("Modified %s\n", ds.Metadata.SelfLink)
+	// TODO
+}
+
+func handleDaemonSetDeletion(dynamicClient *dynamic.Client, restClient *rest.RESTClient, ds types.IotDaemonSet) {
+	log.Printf("Deleted %s\n", ds.Metadata.SelfLink)
+	// TODO
 }

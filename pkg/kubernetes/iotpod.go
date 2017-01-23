@@ -52,9 +52,7 @@ func CreatePods(ds types.IotDaemonSet, dynamicClient *dynamic.Client, restClient
 			Do().
 			Into(&newPod)
 
-		log.Printf("Created new pod %s for %s daemon set",
-			newPod.Metadata.Name,
-			ds.Metadata.Name)
+		log.Printf("Created new pod %s for %s daemon set", newPod.Metadata.Name, ds.Metadata.Name)
 	}
 
 	return nil
