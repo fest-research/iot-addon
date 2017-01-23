@@ -1,13 +1,10 @@
 package controller
 
 import (
-	"encoding/json"
-
 	"github.com/fest-research/iot-addon/pkg/api/v1"
-
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/apimachinery/pkg/watch"
-
 	kubeapi "k8s.io/client-go/pkg/api/v1"
 )
 
@@ -51,7 +48,7 @@ func (this NodeController) ToNode(iotDevice *v1.IotDevice) *kubeapi.Node {
 	node.Kind = "Node"
 	node.APIVersion = "v1"
 	node.Spec = iotDevice.Spec
-	node.Status = iotDevice.Status
+	//node.Status = iotDevice.Status
 	node.ObjectMeta = iotDevice.Metadata
 
 	return node
@@ -64,7 +61,7 @@ func (this NodeController) ToIotDevice(node *kubeapi.Node) *v1.IotDevice {
 	iotDevice.Kind = "IotDevice"
 	iotDevice.APIVersion = "fujitsu.com/v1"
 	iotDevice.Metadata = node.ObjectMeta
-	iotDevice.Status = node.Status
+	//iotDevice.Status = node.Status
 	iotDevice.Spec = node.Spec
 
 	return iotDevice
@@ -90,6 +87,8 @@ func (this NodeController) ToUnstructured(node *kubeapi.Node) (*unstructured.Uns
 
 // Converts unstructured iot device to node json bytes array
 func (this NodeController) ToBytes(unstructured *unstructured.Unstructured) ([]byte, error) {
+	// TODO: improve this hack later on
+	unstructured = fixImageSizeNotation(unstructured)
 	marshalledIotDevice, err := unstructured.MarshalJSON()
 	if err != nil {
 		return nil, err
@@ -112,4 +111,29 @@ func (this NodeController) ToBytes(unstructured *unstructured.Unstructured) ([]b
 
 func NewNodeController() INodeController {
 	return &NodeController{}
+}
+
+// TODO: find a better way to deal with this
+func fixImageSizeNotation(unstructured *unstructured.Unstructured) *unstructured.Unstructured {
+	statusInterface := unstructured.Object["status"]
+	statusMap := statusInterface.(map[string]interface{})
+
+	imagesInterface := statusMap["images"]
+	if imagesInterface != nil {
+		imagesInterfaces := imagesInterface.([]interface{})
+
+		for _, imageInterface := range imagesInterfaces {
+			imageMap := imageInterface.(map[string]interface{})
+			// TODO: convert to decimal notation
+			sizeInterface := imageMap["sizeBytes"]
+			switch sizeInterface.(type) {
+			case float64:
+				sizeBytes := sizeInterface.(float64)
+				sizeBytesInt := int64(sizeBytes)
+				imageMap["sizeBytes"] = sizeBytesInt
+			}
+		}
+	}
+
+	return unstructured
 }
