@@ -38,10 +38,10 @@ func GetDevice(restClient *rest.RESTClient, name, namespace string) types.IotDev
 	return device
 }
 
-
-
 func GetDeviceDaemonSets(restClient *rest.RESTClient, device types.IotDevice) ([]types.IotDaemonSet, error) {
 	var dsList types.IotDaemonSetList
+	var resList []types.IotDaemonSet
+
 	err := restClient.Get().
 		Resource(types.IotDaemonSetType).
 		Namespace(device.Metadata.Namespace).
@@ -53,8 +53,23 @@ func GetDeviceDaemonSets(restClient *rest.RESTClient, device types.IotDevice) ([
 	if (err != nil) {
 		return nil, err
 	}
+	resList = append(resList, dsList.Items...)
 
-	return dsList.Items, nil
+	err = restClient.Get().
+		Resource(types.IotDaemonSetType).
+		Namespace(device.Metadata.Namespace).
+		LabelsSelectorParam(labels.Set{types.DeviceSelector: types.DevicesAll}.
+		AsSelector()).
+		Do().
+		Into(&dsList)
+
+	if (err != nil) {
+		return nil, err
+	}
+
+	resList = append(resList, dsList.Items...)
+
+	return resList, nil
 }
 
 func GetDevicePods(restClient *rest.RESTClient, device types.IotDevice) ([]types.IotPod, error) {

@@ -39,10 +39,8 @@ func WatchIotDevices(dynamicClient *dynamic.Client, restClient *rest.RESTClient)
 		iotDevice, _ := e.Object.(*types.IotDevice)
 
 		if e.Type == watch.Added {
-			log.Printf("Added %s\n", iotDevice.Metadata.SelfLink)
-			pods, _ := kubernetes.GetDevicePods(restClient, *iotDevice)
-			log.Printf("Device pods %s %v\n", iotDevice.Metadata.SelfLink, pods)
-			log.Printf("Device pods len %d\n", len(pods))
+			log.Printf("--Device added %s\n", iotDevice.Metadata.Name)
+			addDeviceHandler(restClient, *iotDevice)
 		} else if e.Type == watch.Modified {
 			log.Printf("Modified %s\n", iotDevice.Metadata.SelfLink)
 		} else if e.Type == watch.Deleted {
@@ -52,4 +50,15 @@ func WatchIotDevices(dynamicClient *dynamic.Client, restClient *rest.RESTClient)
 			break
 		}
 	}
+}
+
+func addDeviceHandler (restClient *rest.RESTClient, iotDevice types.IotDevice) {
+	pods, _ := kubernetes.GetDevicePods(restClient, iotDevice)
+	log.Printf("--Device pods %s %v\n", iotDevice.Metadata.Name, pods)
+	log.Printf("--Device pods len %d\n", len(pods))
+
+	daemonSets, _ := kubernetes.GetDeviceDaemonSets(restClient, iotDevice)
+	log.Printf("--Device ds %s %v\n", iotDevice.Metadata.Name, daemonSets)
+	log.Printf("--Device ds len %d\n", len(daemonSets))
+
 }
