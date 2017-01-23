@@ -58,7 +58,9 @@ func (this RawProxy) Put(req *restful.Request) ([]byte, error) {
 	}
 	log.Printf("[Raw proxy] PUT Request (%s): %s", requestPath, string(reqBody))
 
-	r, err := http.NewRequest("PUT", requestPath, bytes.NewReader(reqBody))
+	client := &http.Client{}
+	newReq, err := http.NewRequest("PUT", requestPath, bytes.NewReader(reqBody))
+	r, _ := client.Do(newReq)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +112,11 @@ func (this RawProxy) Patch(req *restful.Request) ([]byte, error) {
 	}
 	log.Printf("[Raw proxy] PATCH Request (%s): %s", requestPath, string(reqBody))
 
-	r, err := http.NewRequest("PATCH", requestPath, bytes.NewReader(reqBody))
+
+	client := &http.Client{}
+	newReq, err := http.NewRequest("PATCH", requestPath, bytes.NewReader(reqBody))
+	newReq.Header.Add("Content-Type", "application/strategic-merge-patch+json")
+	r, _ := client.Do(newReq)
 	if err != nil {
 		return nil, err
 	}
@@ -128,6 +134,7 @@ func (this RawProxy) Patch(req *restful.Request) ([]byte, error) {
 
 func (this RawProxy) Watch(req *restful.Request) watch.Watcher {
 	watcher := watch.NewRawWatcher()
+	// TODO map request path to third party resource watch path
 	requestPath := this.serverAddress + this.removePathParams(req.Request.URL)
 
 	go watcher.Watch(requestPath)
