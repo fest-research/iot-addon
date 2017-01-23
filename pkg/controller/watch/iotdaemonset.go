@@ -1,9 +1,6 @@
 package watch
 
 import (
-	"fmt"
-	"log"
-
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/kubernetes"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -11,6 +8,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/pkg/api"
 	"k8s.io/client-go/rest"
+	"log"
 )
 
 var iotDaemonSetResource = v1.APIResource{
@@ -24,7 +22,7 @@ func WatchIotDaemonSet(dynamicClient *dynamic.Client, restClient *rest.RESTClien
 		Watch(&api.ListOptions{})
 
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 	}
 
 	defer watcher.Stop()
@@ -33,14 +31,14 @@ func WatchIotDaemonSet(dynamicClient *dynamic.Client, restClient *rest.RESTClien
 		e, ok := <-watcher.ResultChan()
 
 		if !ok {
-			panic(fmt.Sprintf("IotDaemonSet ended early?"))
+			panic("IotDaemonSet ended early?")
 		}
 
 		ds, _ := e.Object.(*types.IotDaemonSet)
 
 		if e.Type == watch.Added {
 			log.Printf("Added %s\n", ds.Metadata.SelfLink)
-			//kubernetes.CreateIotPods(*ds, dynamicClient, restClient)
+			kubernetes.CreateIotPods(*ds, dynamicClient, restClient)
 			pods, _ := kubernetes.GetDaemonSetPods(restClient, *ds)
 			log.Printf("Device pods %s %v\n", ds.Metadata.SelfLink, pods)
 			log.Printf("Device pods len %d\n", len(pods))

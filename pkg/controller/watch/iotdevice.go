@@ -1,10 +1,6 @@
 package watch
 
 import (
-	"fmt"
-
-	"log"
-
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/kubernetes"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -12,6 +8,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/pkg/api"
 	"k8s.io/client-go/rest"
+	"log"
 )
 
 var iotDeviceResource = v1.APIResource{
@@ -25,7 +22,7 @@ func WatchIotDevices(dynamicClient *dynamic.Client, restClient *rest.RESTClient)
 		Watch(&api.ListOptions{})
 
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Println(err.Error())
 	}
 
 	defer watcher.Stop()
@@ -34,7 +31,7 @@ func WatchIotDevices(dynamicClient *dynamic.Client, restClient *rest.RESTClient)
 		e, ok := <-watcher.ResultChan()
 
 		if !ok {
-			panic(fmt.Sprintf("IotDevices ended early?"))
+			panic("IotDevices ended early?")
 		}
 
 		iotDevice, _ := e.Object.(*types.IotDevice)
