@@ -33,7 +33,7 @@ func GetDaemonSetPods(restClient *rest.RESTClient, ds types.IotDaemonSet) ([]typ
 		Resource(types.IotPodType).
 		Namespace(ds.Metadata.Namespace).
 		LabelsSelectorParam(labels.Set{types.CreatedBy: types.IotDaemonSetType + "." + ds.Metadata.Name}.
-		AsSelector()).
+			AsSelector()).
 		Do().
 		Into(&podList)
 

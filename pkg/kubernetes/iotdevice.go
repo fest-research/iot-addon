@@ -46,7 +46,7 @@ func GetDeviceDaemonSets(restClient *rest.RESTClient, device types.IotDevice) ([
 		Resource(types.IotDaemonSetType).
 		Namespace(device.Metadata.Namespace).
 		LabelsSelectorParam(labels.Set{types.DeviceSelector: device.Metadata.Name}.
-		AsSelector()).
+			AsSelector()).
 		Do().
 		Into(&dsList)
 
@@ -59,7 +59,7 @@ func GetDeviceDaemonSets(restClient *rest.RESTClient, device types.IotDevice) ([
 		Resource(types.IotDaemonSetType).
 		Namespace(device.Metadata.Namespace).
 		LabelsSelectorParam(labels.Set{types.DeviceSelector: types.DevicesAll}.
-		AsSelector()).
+			AsSelector()).
 		Do().
 		Into(&dsList)
 
@@ -78,7 +78,7 @@ func GetDevicePods(restClient *rest.RESTClient, device types.IotDevice) ([]types
 		Resource(types.IotPodType).
 		Namespace(device.Metadata.Namespace).
 		LabelsSelectorParam(labels.Set{types.DeviceSelector: device.Metadata.Name}.
-		AsSelector()).
+			AsSelector()).
 		Do().
 		Into(&podList)
 
