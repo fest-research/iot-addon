@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"net/http"
 
@@ -10,18 +9,21 @@ import (
 	"github.com/fest-research/iot-addon/pkg/apiserver/controller"
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
 	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
+	"k8s.io/apimachinery/pkg/util/json"
+
 	apimachinery "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/pkg/api"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
 
 var iotDeviceResource = &apimachinery.APIResource{Name: v1.IotDeviceType, Namespaced: true}
 
 type NodeService struct {
-	proxy          *proxy.Proxy
+	proxy          proxy.IServerProxy
 	nodeController controller.INodeController
 }
 
-func NewNodeService(proxy *proxy.Proxy, controller controller.INodeController) NodeService {
+func NewNodeService(proxy proxy.IServerProxy, controller controller.INodeController) NodeService {
 	return NodeService{proxy: proxy, nodeController: controller}
 }
 
@@ -65,7 +67,7 @@ func (this NodeService) Register(ws *restful.WebService) {
 	// Update status
 	ws.Route(
 		ws.Method("PATCH").
-			Path("/nodes/{name}/status").
+			Path("/nodes/{node}/status").
 			To(this.updateStatus).
 			Returns(http.StatusOK, "OK", nil).
 			Writes(nil),
@@ -102,7 +104,7 @@ func (this NodeService) createNode(req *restful.Request, resp *restful.Response)
 	}
 
 	// Create the iot device
-	unstructuredIotDevice, err = this.proxy.ServerProxy.Create(iotDeviceResource, unstructuredIotDevice, namespace)
+	unstructuredIotDevice, err = this.proxy.Create(iotDeviceResource, unstructuredIotDevice, namespace)
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
@@ -120,42 +122,110 @@ func (this NodeService) createNode(req *restful.Request, resp *restful.Response)
 }
 
 func (this NodeService) getNode(req *restful.Request, resp *restful.Response) {
-	response, err := this.proxy.RawProxy.Get(req)
+	namespace := req.PathParameter("namespace")
+	name := req.PathParameter("pod")
+
+	obj, err := this.proxy.Get(iotDeviceResource, namespace, name)
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
 	}
+
+	response, err := this.nodeController.ToBytes(obj)
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
+
 	resp.AddHeader("Content-Type", "application/json")
 	resp.Write(response)
 }
 
-func (this NodeService) watchNodes(req *restful.Request, resp *restful.Response) {
-	watcher := this.proxy.RawProxy.Watch(req)
-	notifier := watch.NewRawNotifier()
-
-	err := notifier.Start(watcher, resp)
-	if err != nil {
-		handleInternalServerError(resp, err)
-		return
-	}
-}
-
 func (this NodeService) listNodes(req *restful.Request, resp *restful.Response) {
-	response, err := this.proxy.RawProxy.Get(req)
+	obj, err := this.proxy.List(iotDeviceResource, &api.ListOptions{})
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
 	}
+
+	iotDeviceList := obj.(*v1.IotDeviceList)
+	nodeList := this.nodeController.ToNodeList(iotDeviceList)
+	response, _ := json.Marshal(nodeList)
+
 	resp.AddHeader("Content-Type", "application/json")
 	resp.Write(response)
 }
 
 func (this NodeService) updateStatus(req *restful.Request, resp *restful.Response) {
-	response, err := this.proxy.RawProxy.Patch(req)
+	// TODO: refactor this later, set based on tenant
+	namespace := "default"
+	name := req.PathParameter("node")
+
+	// Read post request
+	body, err := ioutil.ReadAll(req.Request.Body)
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
 	}
+
+	// Unmarshal request to a node object
+	node := &apiv1.Node{}
+	err = json.Unmarshal(body, node)
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
+
+	// TODO: pass the namespace in Transform() when it's refactored
+	node.ObjectMeta.Namespace = namespace
+
+	// Transform the node to an unstructured iot device
+	unstructuredIotDevice, err := this.nodeController.ToUnstructured(node)
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
+
+	content, err := json.Marshal(unstructuredIotDevice)
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
+
+	// Create the iot device
+	unstructuredIotDevice, err = this.proxy.Patch(iotDeviceResource, name,
+		api.JSONPatchType, content, namespace)
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
+
+	// Transform response back to unstructured pod
+	response, err := this.nodeController.ToBytes(unstructuredIotDevice)
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
+
 	resp.AddHeader("Content-Type", "application/json")
 	resp.Write(response)
+}
+
+func (this NodeService) watchNodes(req *restful.Request, resp *restful.Response) {
+	watcher, err := this.proxy.Watch(iotDeviceResource, &api.ListOptions{})
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
+
+	defer watcher.Stop()
+
+	notifier := watch.NewNotifier()
+
+	notifier.Register(this.nodeController)
+	err = notifier.Start(watcher, resp)
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
 }

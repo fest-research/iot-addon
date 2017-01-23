@@ -43,7 +43,6 @@ func GetDaemonSetPods(restClient *rest.RESTClient, ds types.IotDaemonSet) ([]typ
 
 	return podList.Items, nil
 
-
 }
 
 func DaemonSetToPod(ds types.IotDaemonSet) types.IotPod {
@@ -62,8 +61,8 @@ func DaemonSetToPod(ds types.IotDaemonSet) types.IotPod {
 			Name:      ds.Metadata.Name,
 			Namespace: ds.Metadata.Namespace,
 			Labels: map[string]string{
-				types.CreatedBy: types.IotDaemonSetType + "." + ds.Metadata.Name,
-				types.DeviceSelector:    deviceSelector,
+				types.CreatedBy:      types.IotDaemonSetType + "." + ds.Metadata.Name,
+				types.DeviceSelector: deviceSelector,
 			},
 		},
 		Spec: ds.Spec.Template.Spec,

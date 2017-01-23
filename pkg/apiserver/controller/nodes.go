@@ -14,7 +14,6 @@ import (
 type INodeController interface {
 	// TransformWatchEvent implements WatchEventController.
 	TransformWatchEvent(event watch.Event) watch.Event
-
 	ToNodeList(*v1.IotDeviceList) *kubeapi.NodeList
 	ToNode(*v1.IotDevice) *kubeapi.Node
 	ToIotDevice(*kubeapi.Node) *v1.IotDevice
