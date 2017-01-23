@@ -15,7 +15,6 @@ import (
 // in IotDaemonSet with deviceSelector (IotDevice name or 'all').
 func GetDaemonSetDevices(ds types.IotDaemonSet, dynamicClient *dynamic.Client,
 	restClient *rest.RESTClient) ([]types.IotDevice, error) {
-
 	deviceSelector := ds.Metadata.Labels[types.DeviceSelector]
 	if deviceSelector == types.DevicesAll {
 		return GetAllDevices(dynamicClient, ds.Metadata.Namespace)
@@ -27,8 +26,8 @@ func GetDaemonSetDevices(ds types.IotDaemonSet, dynamicClient *dynamic.Client,
 }
 
 func GetDaemonSetPods(restClient *rest.RESTClient, ds types.IotDaemonSet) ([]types.IotPod, error) {
-
 	var podList types.IotPodList
+
 	err := restClient.Get().
 		Resource(types.IotPodType).
 		Namespace(ds.Metadata.Namespace).
@@ -46,8 +45,8 @@ func GetDaemonSetPods(restClient *rest.RESTClient, ds types.IotDaemonSet) ([]typ
 }
 
 func DaemonSetToPod(ds types.IotDaemonSet) types.IotPod {
-
 	deviceSelector, ok := ds.Metadata.Labels[types.DeviceSelector]
+
 	if !ok {
 		deviceSelector = ""
 	}

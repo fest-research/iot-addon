@@ -14,16 +14,16 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-func CreateIotPods(ds types.IotDaemonSet, dynamicClient *dynamic.Client,
-	restClient *rest.RESTClient) error {
+func CreateIotPods(ds types.IotDaemonSet, dynamicClient *dynamic.Client, restClient *rest.RESTClient) error {
 	var pods []types.IotPod
+
 	devices, err := GetDaemonSetDevices(ds, dynamicClient, restClient)
 
 	if err != nil {
 		return err
 	}
 
-	// TODO check if pods don't exist already!
+	// TODO Check if pods don't exist already!
 
 	for _, device := range devices {
 		pod := types.IotPod{
@@ -62,8 +62,7 @@ func CreateIotPods(ds types.IotDaemonSet, dynamicClient *dynamic.Client,
 	return nil
 }
 
-// TODO Add function to retrieve related devices. Devices for pod can be discovered using
-// "deviceSelector" label from pod (it's copied from daemon set during pod creation).
+// GetPodDevice returns IotDevice where IotPod is deployed. Method uses "deviceSelector" label from IotPod.
 func GetPodDevice(restClient *rest.RESTClient, pod types.IotPod) (types.IotDevice, error) {
 	var device types.IotDevice
 
@@ -83,12 +82,11 @@ func GetPodDevice(restClient *rest.RESTClient, pod types.IotPod) (types.IotDevic
 	return device, err
 }
 
-// TODO Add function to retrieve related daemon sets. Daemon sets can be discovered using
-// "createdBy" label from pod.
+// GetPodDaemonSet returns IotDaemonSet which created IotPod. Method uses "createdBy" label from IotPod.
 func GetPodDaemonSet(restClient *rest.RESTClient, pod types.IotPod) (types.IotDaemonSet, error) {
 	var ds types.IotDaemonSet
 
-	fieldSelector, err := fields.ParseSelector("metadata.selfLink=" + pod.Metadata.Labels[api.CreatedByAnnotation])
+	fieldSelector, err := fields.ParseSelector("metadata.selfLink=" + pod.Metadata.Labels[types.CreatedBy])
 
 	if err != nil {
 		return ds, err
