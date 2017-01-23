@@ -3,11 +3,10 @@ package kubernetes
 import (
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/pkg/api"
-	"k8s.io/client-go/pkg/api/v1"
-
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/pkg/api"
+	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/rest"
 )
 
@@ -37,12 +36,11 @@ func GetDaemonSetPods(restClient *rest.RESTClient, ds types.IotDaemonSet) ([]typ
 		Do().
 		Into(&podList)
 
-	if (err != nil) {
+	if err != nil {
 		return nil, err
 	}
 
 	return podList.Items, nil
-
 
 }
 

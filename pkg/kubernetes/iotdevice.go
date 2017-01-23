@@ -50,7 +50,7 @@ func GetDeviceDaemonSets(restClient *rest.RESTClient, device types.IotDevice) ([
 		Do().
 		Into(&dsList)
 
-	if (err != nil) {
+	if err != nil {
 		return nil, err
 	}
 	resList = append(resList, dsList.Items...)
@@ -63,7 +63,7 @@ func GetDeviceDaemonSets(restClient *rest.RESTClient, device types.IotDevice) ([
 		Do().
 		Into(&dsList)
 
-	if (err != nil) {
+	if err != nil {
 		return nil, err
 	}
 
@@ -82,7 +82,7 @@ func GetDevicePods(restClient *rest.RESTClient, device types.IotDevice) ([]types
 		Do().
 		Into(&podList)
 
-	if (err != nil) {
+	if err != nil {
 		return nil, err
 	}
 

@@ -3,6 +3,8 @@ package watch
 import (
 	"fmt"
 
+	"log"
+
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/kubernetes"
 	"k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -10,7 +12,6 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/pkg/api"
 	"k8s.io/client-go/rest"
-	"log"
 )
 
 var iotDeviceResource = v1.APIResource{
@@ -52,7 +53,7 @@ func WatchIotDevices(dynamicClient *dynamic.Client, restClient *rest.RESTClient)
 	}
 }
 
-func addDeviceHandler (restClient *rest.RESTClient, iotDevice types.IotDevice) {
+func addDeviceHandler(restClient *rest.RESTClient, iotDevice types.IotDevice) {
 	pods, _ := kubernetes.GetDevicePods(restClient, iotDevice)
 	log.Printf("--Device pods %s %v\n", iotDevice.Metadata.Name, pods)
 	log.Printf("--Device pods len %d\n", len(pods))

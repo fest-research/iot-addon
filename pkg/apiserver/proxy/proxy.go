@@ -4,7 +4,7 @@ import "k8s.io/client-go/dynamic"
 
 type Proxy struct {
 	ServerProxy IServerProxy
-	RawProxy IRawProxy
+	RawProxy    IRawProxy
 }
 
 func NewProxy(tprClient *dynamic.Client, serverAddress string) *Proxy {

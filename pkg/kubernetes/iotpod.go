@@ -1,6 +1,8 @@
 package kubernetes
 
 import (
+	"log"
+
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -10,7 +12,6 @@ import (
 	"k8s.io/client-go/pkg/api"
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/rest"
-	"log"
 )
 
 func CreateIotPods(ds types.IotDaemonSet, dynamicClient *dynamic.Client,
@@ -63,7 +64,7 @@ func CreateIotPods(ds types.IotDaemonSet, dynamicClient *dynamic.Client,
 
 // TODO Add function to retrieve related devices. Devices for pod can be discovered using
 // "deviceSelector" label from pod (it's copied from daemon set during pod creation).
-func GetPodDevice(restClient *rest.RESTClient, pod types.IotPod) (types.IotDevice, error)  {
+func GetPodDevice(restClient *rest.RESTClient, pod types.IotPod) (types.IotDevice, error) {
 	var device types.IotDevice
 
 	fieldSelector, err := fields.ParseSelector("metadata.name=" + pod.Metadata.Labels[types.DeviceSelector])
@@ -81,8 +82,6 @@ func GetPodDevice(restClient *rest.RESTClient, pod types.IotPod) (types.IotDevic
 
 	return device, err
 }
-
-
 
 // TODO Add function to retrieve related daemon sets. Daemon sets can be discovered using
 // "createdBy" label from pod.

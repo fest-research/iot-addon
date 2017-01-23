@@ -13,7 +13,7 @@ import (
 )
 
 type IServerProxy interface {
-	Create(*metav1.APIResource, *unstructured.Unstructured) (*unstructured.Unstructured, error)
+	Create(*metav1.APIResource, *unstructured.Unstructured, string) (*unstructured.Unstructured, error)
 	Delete(*metav1.APIResource, string, *v1.DeleteOptions) error
 	Patch(*metav1.APIResource, string, api.PatchType, []byte) (*unstructured.Unstructured, error)
 	Update(*metav1.APIResource, *unstructured.Unstructured, string) (*unstructured.Unstructured, error)
@@ -45,11 +45,11 @@ func (this ServerProxy) Get(resource *metav1.APIResource, namespace, name string
 	return this.tprClient.Resource(resource, namespace).Get(name)
 }
 
-func (this ServerProxy) Create(resource *metav1.APIResource, obj *unstructured.Unstructured) (
+func (this ServerProxy) Create(resource *metav1.APIResource, obj *unstructured.Unstructured, namespace string) (
 	*unstructured.Unstructured, error) {
 	log.Printf("[Server proxy] CREATE resource: %s, namespaced: %t", resource.Name, resource.Namespaced)
 
-	return this.tprClient.Resource(resource, api.NamespaceAll).Create(obj)
+	return this.tprClient.Resource(resource, namespace).Create(obj)
 }
 
 func (this ServerProxy) Delete(resource *metav1.APIResource, name string,

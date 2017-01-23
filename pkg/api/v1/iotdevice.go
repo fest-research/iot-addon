@@ -11,6 +11,7 @@ const IotDeviceType = "iotdevices"
 type IotDevice struct {
 	metav1.TypeMeta `json:",inline"`
 	Metadata        v1.ObjectMeta `json:"metadata"`
+	Status          v1.NodeStatus `json:"status"`
 }
 
 type IotDeviceList struct {

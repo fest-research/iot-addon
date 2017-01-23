@@ -1,13 +1,21 @@
 package handler
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/emicklei/go-restful"
+	"github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/apiserver/controller"
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
 	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
+	apimachinery "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
+
+var iotDeviceResource = &apimachinery.APIResource{Name: v1.IotDeviceType, Namespaced: true}
 
 type NodeService struct {
 	proxy          *proxy.Proxy
@@ -66,14 +74,54 @@ func (this NodeService) Register(ws *restful.WebService) {
 }
 
 func (this NodeService) createNode(req *restful.Request, resp *restful.Response) {
-	response, err := this.proxy.RawProxy.Post(req)
+	// TODO: refactor this later, set based on tenant
+	namespace := "default"
+
+	// Read post request
+	body, err := ioutil.ReadAll(req.Request.Body)
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
 	}
 
+	// Unmarshal request to a node object
+	node := &apiv1.Node{}
+	err = json.Unmarshal(body, node)
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
+
+	// TODO: pass the namespace in Transform() when it's refactored
+	node.ObjectMeta.Namespace = namespace
+
+	// Transform the node to an unstructured iot device
+	unstructuredIotDevice, err := this.nodeController.Transform(node)
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
+
+	unstructured := unstructuredIotDevice.(*unstructured.Unstructured)
+
+	// Create the iot device
+	unstructuredIotDevice, err = this.proxy.ServerProxy.Create(iotDeviceResource, unstructured, namespace)
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
+
+	// Transform response back to unstructured pod
+	response, err := this.nodeController.Transform(unstructuredIotDevice)
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
+
+	r := response.([]byte)
+
 	resp.AddHeader("Content-Type", "application/json")
-	resp.Write(response)
+	resp.Write(r)
 }
 
 func (this NodeService) getNode(req *restful.Request, resp *restful.Response) {
