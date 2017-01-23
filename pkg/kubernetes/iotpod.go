@@ -9,7 +9,6 @@ import (
 	"k8s.io/client-go/pkg/fields"
 
 	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/pkg/api"
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/rest"
 )
