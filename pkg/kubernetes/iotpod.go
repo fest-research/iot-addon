@@ -35,7 +35,7 @@ func CreateIotPods(ds types.IotDaemonSet, dynamicClient *dynamic.Client,
 				Name:      ds.Metadata.Name + "-" + string(common.NewUUID()),
 				Namespace: ds.Metadata.Namespace,
 				Labels: map[string]string{
-					api.CreatedByAnnotation: ds.Metadata.SelfLink,
+					types.CreatedBy: types.IotDaemonSetType + "." + ds.Metadata.Name,
 					types.DeviceSelector:    device.Metadata.Name,
 				},
 			},

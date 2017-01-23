@@ -1,4 +1,7 @@
 package v1
 
-const DeviceSelector = "deviceSelector"
-const DevicesAll = "all"
+const (
+	CreatedBy = "createdBy"
+	DeviceSelector = "deviceSelector"
+	DevicesAll = "all"
+)

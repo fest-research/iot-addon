@@ -3,10 +3,11 @@ package kubernetes
 import (
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"k8s.io/client-go/pkg/api/v1"
+
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/pkg/api"
-	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/rest"
 )
 
@@ -31,7 +32,7 @@ func GetDaemonSetPods(restClient *rest.RESTClient, ds types.IotDaemonSet) ([]typ
 	err := restClient.Get().
 		Resource(types.IotPodType).
 		Namespace(ds.Metadata.Namespace).
-		LabelsSelectorParam(labels.Set{api.CreatedByAnnotation: ds.Metadata.SelfLink}.
+		LabelsSelectorParam(labels.Set{types.CreatedBy: types.IotDaemonSetType + "." + ds.Metadata.Name}.
 		AsSelector()).
 		Do().
 		Into(&podList)
@@ -41,6 +42,7 @@ func GetDaemonSetPods(restClient *rest.RESTClient, ds types.IotDaemonSet) ([]typ
 	}
 
 	return podList.Items, nil
+
 
 }
 
@@ -60,7 +62,7 @@ func DaemonSetToPod(ds types.IotDaemonSet) types.IotPod {
 			Name:      ds.Metadata.Name,
 			Namespace: ds.Metadata.Namespace,
 			Labels: map[string]string{
-				api.CreatedByAnnotation: ds.Metadata.SelfLink,
+				types.CreatedBy: types.IotDaemonSetType + "." + ds.Metadata.Name,
 				types.DeviceSelector:    deviceSelector,
 			},
 		},
