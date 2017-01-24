@@ -28,5 +28,6 @@ func main() {
 
 	// Wait a second and start IotDaemonSet watch.
 	time.Sleep(time.Second)
-	watch.WatchIotDaemonSet(dynamicClient, restClient)
+	watch.NewIotDaemonSetWatcher(dynamicClient, restClient).Watch()
+
 }
