@@ -7,104 +7,65 @@ import (
 	"github.com/fest-research/iot-addon/pkg/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/pkg/fields"
 	"k8s.io/client-go/rest"
 )
 
-// CreateDaemonSetPods creates pods for daemon set if they already don't exist.
-// TODO Split into template filling and object creation methods.
-// TODO Create "kind" fields for custom types.
-func CreateDaemonSetPods(ds types.IotDaemonSet, dynamicClient *dynamic.Client, restClient *rest.RESTClient) error {
-	var pods []types.IotPod
-
-	devices, err := GetDaemonSetDevices(ds, dynamicClient, restClient)
-
-	if err != nil {
-		return err
-	}
-
-	for _, device := range devices {
-		if !IsPodCreated(restClient, ds, device) {
-			pods = append(pods, types.IotPod{
-				TypeMeta: metav1.TypeMeta{
-					Kind:       "IotPod",
-					APIVersion: ds.APIVersion,
+// CreateDaemonSetPod created ds pod on specific device
+func CreateDaemonSetPod(ds types.IotDaemonSet, device types.IotDevice, restClient *rest.RESTClient) error {
+	return restClient.Post().
+		Namespace(ds.Metadata.Namespace).
+		Resource(types.IotPodType).
+		Body(&types.IotPod{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       types.IotPodKind,
+				APIVersion: ds.APIVersion,
+			},
+			Metadata: v1.ObjectMeta{
+				Name:      ds.Metadata.Name + "-" + string(common.NewUUID()),
+				Namespace: ds.Metadata.Namespace,
+				Labels: map[string]string{
+					types.CreatedBy:      types.IotDaemonSetType + "." + ds.Metadata.Name,
+					types.DeviceSelector: device.Metadata.Name,
 				},
-				Metadata: v1.ObjectMeta{
-					Name:      ds.Metadata.Name + "-" + string(common.NewUUID()),
-					Namespace: ds.Metadata.Namespace,
-					Labels: map[string]string{
-						types.CreatedBy:      types.IotDaemonSetType + "." + ds.Metadata.Name,
-						types.DeviceSelector: device.Metadata.Name,
-					},
-				},
-				Spec: ds.Spec.Template.Spec,
-			})
-		}
-	}
-
-	for _, pod := range pods {
-		newPod := types.IotPod{}
-
-		err = restClient.Post().
-			Namespace(ds.Metadata.Namespace).
-			Resource(types.IotPodType).
-			Body(&pod).
-			Do().
-			Into(&newPod)
-
-		log.Printf("Created new pod %s for %s daemon set", newPod.Metadata.Name, ds.Metadata.Name)
-	}
-
-	return nil
+			},
+			Spec: ds.Spec.Template.Spec,
+		}).Do().Error()
 }
 
-// TODO interface for pods
-
-// UpdateDaemonSetPods updates all daemon set pods after it was modified. Pods have to be correctly scheduled and have
-// up-to-date specs.
-func UpdateDaemonSetPods(restClient *rest.RESTClient, dynamicClient *dynamic.Client, ds types.IotDaemonSet) error {
-	log.Printf("Updating pods created by %s %s\n", ds.Metadata.Name, ds.TypeMeta.Kind)
-
-	// Making sure, that daemon set is deployed on currently selected devices.
-	// Getting all existing pods created by daemon set.
-	existingPods, err := GetDaemonSetPods(restClient, ds)
-	if err != nil {
-		return err
-	}
-
-	// Getting list of devices where daemon set should be deployed.
-	destinedDevices, err := GetDaemonSetDevices(ds, dynamicClient, restClient)
-
-	// Updating existing pods.
-	for _, existingPod := range existingPods {
-		if !shouldBePodScheduled(destinedDevices, ds, existingPod) {
-			// TODO remove pod
-		} else {
-			// TODO update pod spec
-		}
-	}
-
-	// TODO add missing
-
-	return nil
-}
-
-// shouldBePodScheduled checks if pod should be scheduled on device.
-func shouldBePodScheduled(dsDestinedDevices []types.IotDevice, ds types.IotDaemonSet, pod types.IotPod) bool {
+// isPodCorrectlyScheduled checks if pod is correctly scheduled.
+func IsPodCorrectlyScheduled(ds types.IotDaemonSet, pod types.IotPod) bool {
 	if ds.Metadata.Labels[types.DeviceSelector] == types.DevicesAll {
 		return true
 	} else {
-		for _, dsDestinedDevice := range dsDestinedDevices {
-			if dsDestinedDevice.Metadata.Name == pod.Metadata.Labels[types.DeviceSelector] &&
-				dsDestinedDevice.Metadata.Namespace == pod.Metadata.Namespace {
-				return true
+		return ds.Metadata.Labels[types.DeviceSelector] == pod.Metadata.Labels[types.DeviceSelector] &&
+		ds.Metadata.Namespace == pod.Metadata.Namespace
+	}
+}
+
+// getDevicesMissingPods filters daemon set destined devices and returns devices without any existing pods.
+func GetDevicesMissingPods(dsDestinedDevices []types.IotDevice, existingPods []types.IotPod) []types.IotDevice {
+	var devicesMissingPod []types.IotDevice
+	for _, device := range dsDestinedDevices {
+
+		// Assume that device has missing pod.
+		isPodMissing := true
+		for _, pod := range existingPods {
+			// Check if it really has iterating through all pods and checking them.
+			if pod.Metadata.Labels[types.DeviceSelector] == device.Metadata.Name {
+				isPodMissing = false
+				break
 			}
 		}
-		return false
+
+		// If device has missing pod, then it has to be added to output array.
+		if isPodMissing {
+			devicesMissingPod = append(devicesMissingPod, device)
+		}
 	}
+	return devicesMissingPod
+
 }
 
 func DeleteDaemonSetPods(restClient *rest.RESTClient, ds types.IotDaemonSet) error {
@@ -117,6 +78,10 @@ func DeleteDaemonSetPods(restClient *rest.RESTClient, ds types.IotDaemonSet) err
 		}.AsSelector()).
 		Do().
 		Error()
+}
+
+func DeletePod(restClient *rest.RESTClient, pod types.IotPod) {
+	restClient.Delete().Resource(types.IotPodType).Namespace(pod.Metadata.Namespace).Name(pod.Metadata.Name).Do()
 }
 
 // IsPodCreated checks if there is any IotPod created for IotDaemonSet on IotDevice.

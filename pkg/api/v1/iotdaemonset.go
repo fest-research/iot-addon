@@ -7,7 +7,10 @@ import (
 	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
 )
 
-const IotDaemonSetType = "iotdaemonsets"
+const (
+	IotDaemonSetKind = "IotDaemonSet"
+	IotDaemonSetType = "iotdaemonsets"
+)
 
 type IotDaemonSet struct {
 	metav1.TypeMeta `json:",inline"`
