@@ -147,7 +147,7 @@ func (this NodeService) getNode(req *restful.Request, resp *restful.Response) {
 }
 
 func (this NodeService) listNodes(req *restful.Request, resp *restful.Response) {
-	obj, err := this.proxy.List(iotDeviceResource, &api.ListOptions{})
+	obj, err := this.proxy.List(iotDeviceResource, &apiv1.ListOptions{})
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
@@ -192,7 +192,7 @@ func (this NodeService) updateStatus(req *restful.Request, resp *restful.Respons
 }
 
 func (this NodeService) watchNodes(req *restful.Request, resp *restful.Response) {
-	watcher, err := this.proxy.Watch(iotDeviceResource, &api.ListOptions{})
+	watcher, err := this.proxy.Watch(iotDeviceResource, &apiv1.ListOptions{})
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return

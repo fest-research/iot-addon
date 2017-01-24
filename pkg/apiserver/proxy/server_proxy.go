@@ -18,8 +18,8 @@ type IServerProxy interface {
 	Patch(*metav1.APIResource, string, api.PatchType, []byte, string) (*unstructured.Unstructured, error)
 	Update(*metav1.APIResource, *unstructured.Unstructured, string) (*unstructured.Unstructured, error)
 	Get(*metav1.APIResource, string, string) (*unstructured.Unstructured, error)
-	List(*metav1.APIResource, *api.ListOptions) (runtime.Object, error)
-	Watch(*metav1.APIResource, *api.ListOptions) (watch.Interface, error)
+	List(*metav1.APIResource, *v1.ListOptions) (runtime.Object, error)
+	Watch(*metav1.APIResource, *v1.ListOptions) (watch.Interface, error)
 }
 
 type ServerProxy struct {
@@ -31,10 +31,9 @@ func NewServerProxy(tprClient *dynamic.Client) IServerProxy {
 	return &ServerProxy{tprClient: tprClient}
 }
 
-func (this ServerProxy) List(resource *metav1.APIResource, listOptions *api.ListOptions) (
+func (this ServerProxy) List(resource *metav1.APIResource, listOptions *v1.ListOptions) (
 	runtime.Object, error) {
 	log.Printf("[Server proxy] LIST resource: %s, namespaced: %t", resource.Name, resource.Namespaced)
-
 	return this.tprClient.Resource(resource, api.NamespaceAll).List(listOptions)
 }
 
@@ -72,7 +71,7 @@ func (this ServerProxy) Update(resource *metav1.APIResource, obj *unstructured.U
 	return this.tprClient.Resource(resource, namespace).Update(obj)
 }
 
-func (this ServerProxy) Watch(resource *metav1.APIResource, listOptions *api.ListOptions) (
+func (this ServerProxy) Watch(resource *metav1.APIResource, listOptions *v1.ListOptions) (
 	watch.Interface, error) {
 	log.Printf("[Server proxy] WATCH resource: %s, namespaced: %t", resource.Name, resource.Namespaced)
 
