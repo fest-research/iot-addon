@@ -96,7 +96,7 @@ func (this PodService) updateStatus(req *restful.Request, resp *restful.Response
 	}
 
 	// Update iot pod
-	unstructuredIotPod, err = this.proxy.Update(iotPodResource, unstructuredIotPod, namespace)
+	unstructuredIotPod, err = this.proxy.Update(iotPodResource, namespace, unstructuredIotPod)
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
@@ -134,6 +134,9 @@ func (this PodService) getPod(req *restful.Request, resp *restful.Response) {
 }
 
 func (this PodService) listPods(req *restful.Request, resp *restful.Response) {
+	// TODO: refactor this later, set based on tenant
+	namespace := "default"
+
 	fieldSelector, err := this.parseFieldSelector(req)
 	if err != nil {
 		handleInternalServerError(resp, err)
@@ -144,7 +147,7 @@ func (this PodService) listPods(req *restful.Request, resp *restful.Response) {
 
 	}
 
-	obj, err := this.proxy.List(iotPodResource, &apiv1.ListOptions{
+	obj, err := this.proxy.List(iotPodResource, namespace, &apiv1.ListOptions{
 		LabelSelector: labelSelector.String(),
 	})
 	if err != nil {
@@ -161,6 +164,9 @@ func (this PodService) listPods(req *restful.Request, resp *restful.Response) {
 }
 
 func (this PodService) watchPods(req *restful.Request, resp *restful.Response) {
+	// TODO: refactor this later, set based on tenant
+	namespace := "default"
+
 	fieldSelector, err := this.parseFieldSelector(req)
 	if err != nil {
 		handleInternalServerError(resp, err)
@@ -171,7 +177,7 @@ func (this PodService) watchPods(req *restful.Request, resp *restful.Response) {
 		handleInternalServerError(resp, err)
 	}
 
-	watcher, err := this.proxy.Watch(iotPodResource, &apiv1.ListOptions{
+	watcher, err := this.proxy.Watch(iotPodResource, namespace, &apiv1.ListOptions{
 		Watch:         true,
 		LabelSelector: labelSelector.String(),
 	})

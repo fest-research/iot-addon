@@ -107,7 +107,7 @@ func (this NodeService) createNode(req *restful.Request, resp *restful.Response)
 		}
 
 		// Create the iot device
-		unstructuredIotDevice, err = this.proxy.Create(iotDeviceResource, unstructuredIotDevice, namespace)
+		unstructuredIotDevice, err = this.proxy.Create(iotDeviceResource, namespace, unstructuredIotDevice)
 		if err != nil {
 			handleInternalServerError(resp, err)
 			return
@@ -147,7 +147,10 @@ func (this NodeService) getNode(req *restful.Request, resp *restful.Response) {
 }
 
 func (this NodeService) listNodes(req *restful.Request, resp *restful.Response) {
-	obj, err := this.proxy.List(iotDeviceResource, &apiv1.ListOptions{})
+	// TODO: refactor this later, set based on tenant
+	namespace := "default"
+
+	obj, err := this.proxy.List(iotDeviceResource, namespace, &apiv1.ListOptions{})
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
@@ -174,7 +177,7 @@ func (this NodeService) updateStatus(req *restful.Request, resp *restful.Respons
 	}
 
 	// Update the IoTDevice
-	unstructuredIotDevice, err := this.proxy.Patch(iotDeviceResource, name, api.MergePatchType, body, namespace)
+	unstructuredIotDevice, err := this.proxy.Patch(iotDeviceResource, namespace, name, api.MergePatchType, body)
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
@@ -192,7 +195,10 @@ func (this NodeService) updateStatus(req *restful.Request, resp *restful.Respons
 }
 
 func (this NodeService) watchNodes(req *restful.Request, resp *restful.Response) {
-	watcher, err := this.proxy.Watch(iotDeviceResource, &apiv1.ListOptions{})
+	// TODO: refactor this later, set based on tenant
+	namespace := "default"
+
+	watcher, err := this.proxy.Watch(iotDeviceResource, namespace, &apiv1.ListOptions{})
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return

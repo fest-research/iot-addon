@@ -13,13 +13,13 @@ import (
 )
 
 type IServerProxy interface {
-	Create(*metav1.APIResource, *unstructured.Unstructured, string) (*unstructured.Unstructured, error)
-	Delete(*metav1.APIResource, string, *v1.DeleteOptions) error
-	Patch(*metav1.APIResource, string, api.PatchType, []byte, string) (*unstructured.Unstructured, error)
-	Update(*metav1.APIResource, *unstructured.Unstructured, string) (*unstructured.Unstructured, error)
+	Create(*metav1.APIResource, string, *unstructured.Unstructured) (*unstructured.Unstructured, error)
+	Delete(*metav1.APIResource, string, string, *v1.DeleteOptions) error
+	Patch(*metav1.APIResource, string, string, api.PatchType, []byte) (*unstructured.Unstructured, error)
+	Update(*metav1.APIResource, string, *unstructured.Unstructured) (*unstructured.Unstructured, error)
 	Get(*metav1.APIResource, string, string) (*unstructured.Unstructured, error)
-	List(*metav1.APIResource, *v1.ListOptions) (runtime.Object, error)
-	Watch(*metav1.APIResource, *v1.ListOptions) (watch.Interface, error)
+	List(*metav1.APIResource, string, *v1.ListOptions) (runtime.Object, error)
+	Watch(*metav1.APIResource, string, *v1.ListOptions) (watch.Interface, error)
 }
 
 type ServerProxy struct {
@@ -31,12 +31,6 @@ func NewServerProxy(tprClient *dynamic.Client) IServerProxy {
 	return &ServerProxy{tprClient: tprClient}
 }
 
-func (this ServerProxy) List(resource *metav1.APIResource, listOptions *v1.ListOptions) (
-	runtime.Object, error) {
-	log.Printf("[Server proxy] LIST resource: %s, namespaced: %t", resource.Name, resource.Namespaced)
-	return this.tprClient.Resource(resource, api.NamespaceAll).List(listOptions)
-}
-
 func (this ServerProxy) Get(resource *metav1.APIResource, namespace, name string) (
 	*unstructured.Unstructured, error) {
 	log.Printf("[Server proxy] GET resource: %s, namespaced: %t", resource.Name, resource.Namespaced)
@@ -44,39 +38,45 @@ func (this ServerProxy) Get(resource *metav1.APIResource, namespace, name string
 	return this.tprClient.Resource(resource, namespace).Get(name)
 }
 
-func (this ServerProxy) Create(resource *metav1.APIResource, obj *unstructured.Unstructured, namespace string) (
+func (this ServerProxy) Create(resource *metav1.APIResource, namespace string, obj *unstructured.Unstructured) (
 	*unstructured.Unstructured, error) {
 	log.Printf("[Server proxy] CREATE resource: %s, namespaced: %t", resource.Name, resource.Namespaced)
 
 	return this.tprClient.Resource(resource, namespace).Create(obj)
 }
 
-func (this ServerProxy) Delete(resource *metav1.APIResource, name string,
+func (this ServerProxy) Delete(resource *metav1.APIResource, namespace, name string,
 	deleteOptions *v1.DeleteOptions) error {
 	log.Printf("[Server proxy] DELETE resource: %s, namespaced: %t", resource.Name, resource.Namespaced)
 
-	return this.tprClient.Resource(resource, api.NamespaceAll).Delete(name, deleteOptions)
+	return this.tprClient.Resource(resource, namespace).Delete(name, deleteOptions)
 }
 
-func (this ServerProxy) Patch(resource *metav1.APIResource, name string, pt api.PatchType,
-	body []byte, namespace string) (*unstructured.Unstructured, error) {
-	log.Printf("[Server proxy] PATCH resource: %s, namespaced: %t", resource.Name, resource.Namespaced)
-	return this.tprClient.Resource(resource, namespace).Patch(name, pt, body)
-}
-
-func (this ServerProxy) Update(resource *metav1.APIResource, obj *unstructured.Unstructured,
-	namespace string) (*unstructured.Unstructured, error) {
+func (this ServerProxy) Update(resource *metav1.APIResource, namespace string,
+	obj *unstructured.Unstructured) (*unstructured.Unstructured, error) {
 	log.Printf("[Server proxy] UPDATE resource: %v", obj)
 
 	return this.tprClient.Resource(resource, namespace).Update(obj)
 }
 
-func (this ServerProxy) Watch(resource *metav1.APIResource, listOptions *v1.ListOptions) (
+func (this ServerProxy) Patch(resource *metav1.APIResource, namespace, name string,
+	pt api.PatchType, body []byte) (*unstructured.Unstructured, error) {
+	log.Printf("[Server proxy] PATCH resource: %s, namespaced: %t", resource.Name, resource.Namespaced)
+	return this.tprClient.Resource(resource, namespace).Patch(name, pt, body)
+}
+
+func (this ServerProxy) List(resource *metav1.APIResource, namespace string, listOptions *v1.ListOptions) (
+	runtime.Object, error) {
+	log.Printf("[Server proxy] LIST resource: %s, namespaced: %t", resource.Name, resource.Namespaced)
+	return this.tprClient.Resource(resource, namespace).List(listOptions)
+}
+
+func (this ServerProxy) Watch(resource *metav1.APIResource, namespace string, listOptions *v1.ListOptions) (
 	watch.Interface, error) {
 	log.Printf("[Server proxy] WATCH resource: %s, namespaced: %t", resource.Name, resource.Namespaced)
 
 	watcher, err := this.tprClient.
-		Resource(resource, api.NamespaceAll).
+		Resource(resource, namespace).
 		Watch(listOptions)
 
 	return watcher, err
