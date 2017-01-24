@@ -4,4 +4,5 @@ const (
 	CreatedBy      = "createdBy"
 	DeviceSelector = "deviceSelector"
 	DevicesAll     = "all"
+	Unschedulable  = "unschedulable"
 )
