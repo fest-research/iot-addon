@@ -23,7 +23,7 @@ func CreateDaemonSetPod(ds types.IotDaemonSet, device types.IotDevice, restClien
 				APIVersion: ds.APIVersion,
 			},
 			Metadata: v1.ObjectMeta{
-				Name:      ds.Metadata.Name + "-" + string(common.NewUUID()),
+				Name:      ds.Metadata.Name + "-" + string(common.NewUUID()), // TODO use template val
 				Namespace: ds.Metadata.Namespace,
 				Labels: map[string]string{
 					types.CreatedBy:      types.IotDaemonSetType + "." + ds.Metadata.Name,
@@ -40,7 +40,7 @@ func IsPodCorrectlyScheduled(ds types.IotDaemonSet, pod types.IotPod) bool {
 		return true
 	} else {
 		return ds.Metadata.Labels[types.DeviceSelector] == pod.Metadata.Labels[types.DeviceSelector] &&
-		ds.Metadata.Namespace == pod.Metadata.Namespace
+			ds.Metadata.Namespace == pod.Metadata.Namespace
 	}
 }
 
@@ -82,6 +82,12 @@ func DeleteDaemonSetPods(restClient *rest.RESTClient, ds types.IotDaemonSet) err
 
 func DeletePod(restClient *rest.RESTClient, pod types.IotPod) {
 	restClient.Delete().Resource(types.IotPodType).Namespace(pod.Metadata.Namespace).Name(pod.Metadata.Name).Do()
+}
+
+// TODO Update name, namespace and labels?
+// TODO Save updated pod.
+func UpdatePod(restClient *rest.RESTClient, pod types.IotPod, template v1.PodTemplateSpec) {
+	pod.Spec = template.Spec
 }
 
 // IsPodCreated checks if there is any IotPod created for IotDaemonSet on IotDevice.

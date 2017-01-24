@@ -45,7 +45,7 @@ func DaemonSetToPod(ds types.IotDaemonSet) types.IotPod {
 
 	return types.IotPod{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       "IotPod",
+			Kind:       types.IotPodKind,
 			APIVersion: ds.APIVersion,
 		},
 		Metadata: v1.ObjectMeta{

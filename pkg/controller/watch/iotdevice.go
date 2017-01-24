@@ -16,7 +16,7 @@ import (
 )
 
 var iotDeviceResource = metav1.APIResource{
-	Name:       "iotdevices",
+	Name:       types.IotDeviceType,
 	Namespaced: true,
 }
 
@@ -143,7 +143,7 @@ func deletePod(restClient *rest.RESTClient, pod types.IotPod) error {
 
 func createTypeMeta(apiVersion string) metav1.TypeMeta {
 	return metav1.TypeMeta{
-		Kind:       "IotPod",
+		Kind:       types.IotPodKind,
 		APIVersion: apiVersion,
 	}
 }

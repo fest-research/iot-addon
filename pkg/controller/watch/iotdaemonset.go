@@ -76,6 +76,7 @@ func handleDaemonSetModification(dynamicClient *dynamic.Client, restClient *rest
 	existingPods, err := kubernetes.GetDaemonSetPods(restClient, ds)
 	if err != nil {
 		log.Printf("Cannot get %s %s pods", types.IotDaemonSetKind, ds.Metadata.SelfLink)
+		return
 	}
 
 	// Getting list of IotDevices where IotDaemonSet should be deployed.
@@ -86,7 +87,7 @@ func handleDaemonSetModification(dynamicClient *dynamic.Client, restClient *rest
 		if !kubernetes.IsPodCorrectlyScheduled(ds, existingPod) {
 			kubernetes.DeletePod(restClient, existingPod)
 		} else {
-			// TODO Update and save pod spec if it's needed.
+			kubernetes.UpdatePod(restClient, existingPod, ds.Spec.Template)
 		}
 	}
 
