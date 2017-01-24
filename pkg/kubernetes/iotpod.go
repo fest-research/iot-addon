@@ -61,6 +61,14 @@ func CreateDaemonSetPods(ds types.IotDaemonSet, dynamicClient *dynamic.Client, r
 	return nil
 }
 
+func UpdateDaemonSetPods(restClient *rest.RESTClient, ds types.IotDaemonSet) error {
+	log.Printf("Updating pods created by %s %s\n", ds.Metadata.Name, ds.TypeMeta.Kind)
+
+	// TODO
+
+	return nil
+}
+
 func DeleteDaemonSetPods(restClient *rest.RESTClient, ds types.IotDaemonSet) error {
 	log.Printf("Deleting pods created by %s %s\n", ds.Metadata.Name, ds.TypeMeta.Kind)
 	return restClient.Delete().

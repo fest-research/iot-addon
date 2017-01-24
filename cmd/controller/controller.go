@@ -6,6 +6,7 @@ import (
 	"github.com/fest-research/iot-addon/pkg/controller/watch"
 	"github.com/fest-research/iot-addon/pkg/kubernetes"
 	"github.com/spf13/pflag"
+	"time"
 )
 
 var (
@@ -22,6 +23,10 @@ func main() {
 	dynamicClient := kubernetes.NewDynamicClient(config)
 	restClient := kubernetes.NewRESTClient(config)
 
+	// Start IotDevices watch.
 	go watch.WatchIotDevices(dynamicClient, restClient)
+
+	// Wait a second and start IotDaemonSet watch.
+	time.Sleep(time.Second)
 	watch.WatchIotDaemonSet(dynamicClient, restClient)
 }
