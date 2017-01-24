@@ -132,9 +132,6 @@ func createPodMapFromDaemonSets(deamonSets []types.IotDaemonSet) map[string]type
 }
 
 func createPod(restClient *rest.RESTClient, pod types.IotPod, deviceName string) error {
-
-	newPod := types.IotPod{}
-
 	name := pod.Metadata.Name
 	pod.Metadata.Name = name + "-" + string(common.NewUUID())
 	pod.Metadata.Labels = map[string]string{
@@ -149,7 +146,7 @@ func createPod(restClient *rest.RESTClient, pod types.IotPod, deviceName string)
 		Resource(types.IotPodType).
 		Body(&pod).
 		Do().
-		Into(&newPod)
+		Error()
 
 }
 
@@ -164,6 +161,5 @@ func createObjectMeta(name string, namespace string) v1.ObjectMeta {
 	return v1.ObjectMeta{
 		Name:      name,
 		Namespace: namespace,
-
 	}
 }
