@@ -53,7 +53,7 @@ func handleDaemonSetAddition(dynamicClient *dynamic.Client, restClient *rest.RES
 
 func handleDaemonSetModification(dynamicClient *dynamic.Client, restClient *rest.RESTClient, ds types.IotDaemonSet) {
 	log.Printf("Modified %s\n", ds.Metadata.SelfLink)
-	kubernetes.UpdateDaemonSetPods(restClient, ds)
+	kubernetes.UpdateDaemonSetPods(restClient, dynamicClient, ds)
 }
 
 func handleDaemonSetDeletion(dynamicClient *dynamic.Client, restClient *rest.RESTClient, ds types.IotDaemonSet) {

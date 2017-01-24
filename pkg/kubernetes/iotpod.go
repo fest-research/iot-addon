@@ -13,9 +13,9 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-// CreateDaemonSetPods creates IotPods for IotDaemonSet if they already don't exist.
-// TODO Split into template filling and obect creation methods.
-// TODO Check should check if IotPods are the same if they don't exist and update them then.
+// CreateDaemonSetPods creates pods for daemon set if they already don't exist.
+// TODO Split into template filling and object creation methods.
+// TODO Create "kind" fields for custom types.
 func CreateDaemonSetPods(ds types.IotDaemonSet, dynamicClient *dynamic.Client, restClient *rest.RESTClient) error {
 	var pods []types.IotPod
 
@@ -61,12 +61,50 @@ func CreateDaemonSetPods(ds types.IotDaemonSet, dynamicClient *dynamic.Client, r
 	return nil
 }
 
-func UpdateDaemonSetPods(restClient *rest.RESTClient, ds types.IotDaemonSet) error {
+// TODO interface for pods
+
+// UpdateDaemonSetPods updates all daemon set pods after it was modified. Pods have to be correctly scheduled and have
+// up-to-date specs.
+func UpdateDaemonSetPods(restClient *rest.RESTClient, dynamicClient *dynamic.Client, ds types.IotDaemonSet) error {
 	log.Printf("Updating pods created by %s %s\n", ds.Metadata.Name, ds.TypeMeta.Kind)
 
-	// TODO
+	// Making sure, that daemon set is deployed on currently selected devices.
+	// Getting all existing pods created by daemon set.
+	existingPods, err := GetDaemonSetPods(restClient, ds)
+	if err != nil {
+		return err
+	}
+
+	// Getting list of devices where daemon set should be deployed.
+	destinedDevices, err := GetDaemonSetDevices(ds, dynamicClient, restClient)
+
+	// Updating existing pods.
+	for _, existingPod := range existingPods {
+		if !shouldBePodScheduled(destinedDevices, ds, existingPod) {
+			// TODO remove pod
+		} else {
+			// TODO update pod spec
+		}
+	}
+
+	// TODO add missing
 
 	return nil
+}
+
+// shouldBePodScheduled checks if pod should be scheduled on device.
+func shouldBePodScheduled(dsDestinedDevices []types.IotDevice, ds types.IotDaemonSet, pod types.IotPod) bool {
+	if ds.Metadata.Labels[types.DeviceSelector] == types.DevicesAll {
+		return true
+	} else {
+		for _, dsDestinedDevice := range dsDestinedDevices {
+			if dsDestinedDevice.Metadata.Name == pod.Metadata.Labels[types.DeviceSelector] &&
+				dsDestinedDevice.Metadata.Namespace == pod.Metadata.Namespace {
+				return true
+			}
+		}
+		return false
+	}
 }
 
 func DeleteDaemonSetPods(restClient *rest.RESTClient, ds types.IotDaemonSet) error {
@@ -75,8 +113,8 @@ func DeleteDaemonSetPods(restClient *rest.RESTClient, ds types.IotDaemonSet) err
 		Resource(types.IotPodType).
 		Namespace(ds.Metadata.Namespace).
 		LabelsSelectorParam(labels.Set{
-		types.CreatedBy: types.IotDaemonSetType + "." + ds.Metadata.Name,
-	}.AsSelector()).
+			types.CreatedBy: types.IotDaemonSetType + "." + ds.Metadata.Name,
+		}.AsSelector()).
 		Do().
 		Error()
 }
@@ -90,9 +128,9 @@ func IsPodCreated(restClient *rest.RESTClient, ds types.IotDaemonSet, device typ
 		Resource(types.IotPodType).
 		Namespace(ds.Metadata.Namespace).
 		LabelsSelectorParam(labels.Set{
-		types.CreatedBy:      types.IotDaemonSetType + "." + ds.Metadata.Name,
-		types.DeviceSelector: device.Metadata.Name,
-	}.AsSelector()).
+			types.CreatedBy:      types.IotDaemonSetType + "." + ds.Metadata.Name,
+			types.DeviceSelector: device.Metadata.Name,
+		}.AsSelector()).
 		Do().
 		Into(&podList)
 

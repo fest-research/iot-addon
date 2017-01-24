@@ -4,13 +4,13 @@ import (
 	"log"
 
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"github.com/fest-research/iot-addon/pkg/kubernetes"
 	"github.com/fest-research/iot-addon/pkg/common"
-	"k8s.io/client-go/pkg/api/v1"
+	"github.com/fest-research/iot-addon/pkg/kubernetes"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/pkg/api"
+	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/rest"
 	"regexp"
 )
@@ -22,7 +22,7 @@ var iotDeviceResource = metav1.APIResource{
 
 func WatchIotDevices(dynamicClient *dynamic.Client, restClient *rest.RESTClient) {
 	watcher, err := dynamicClient.
-	Resource(&iotDeviceResource, api.NamespaceAll).
+		Resource(&iotDeviceResource, api.NamespaceAll).
 		Watch(&api.ListOptions{})
 
 	if err != nil {
@@ -108,7 +108,7 @@ func createPodMapFromPods(pods []types.IotPod) map[string]types.IotPod {
 		pod := types.IotPod{
 			TypeMeta: createTypeMeta(item.APIVersion),
 			Metadata: createObjectMeta(name, item.Metadata.Namespace),
-			Spec: item.Spec,
+			Spec:     item.Spec,
 		}
 		resultmap[name] = pod
 	}
@@ -124,7 +124,7 @@ func createPodMapFromDaemonSets(deamonSets []types.IotDaemonSet) map[string]type
 		pod := types.IotPod{
 			TypeMeta: createTypeMeta(item.APIVersion),
 			Metadata: createObjectMeta(name, item.Metadata.Namespace),
-			Spec: item.Spec.Template.Spec,
+			Spec:     item.Spec.Template.Spec,
 		}
 		resultmap[name] = pod
 	}
@@ -135,8 +135,8 @@ func createPod(restClient *rest.RESTClient, pod types.IotPod, deviceName string)
 	name := pod.Metadata.Name
 	pod.Metadata.Name = name + "-" + string(common.NewUUID())
 	pod.Metadata.Labels = map[string]string{
-		types.CreatedBy: types.IotDaemonSetType + "." + name,
-		types.DeviceSelector:    deviceName,
+		types.CreatedBy:      types.IotDaemonSetType + "." + name,
+		types.DeviceSelector: deviceName,
 	}
 
 	log.Printf("Create pod %v", pod)
