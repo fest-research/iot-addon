@@ -24,7 +24,7 @@ func main() {
 	restClient := kubernetes.NewRESTClient(config)
 
 	// Start IotDevices watch.
-	go watch.WatchIotDevices(dynamicClient, restClient)
+	go watch.NewIotDeviceWatcher(dynamicClient, restClient).Watch()
 
 	// Wait a second and start IotDaemonSet watch.
 	time.Sleep(time.Second)

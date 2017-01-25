@@ -15,13 +15,22 @@ import (
 	"strconv"
 )
 
+type IotDeviceWatcher struct {
+	dynamicClient *dynamic.Client
+	restClient    *rest.RESTClient
+}
+
 var iotDeviceResource = metav1.APIResource{
 	Name:       types.IotDeviceType,
 	Namespaced: true,
 }
 
-func WatchIotDevices(dynamicClient *dynamic.Client, restClient *rest.RESTClient) {
-	watcher, err := dynamicClient.
+func NewIotDeviceWatcher(dynamicClient *dynamic.Client, restClient *rest.RESTClient) IotDeviceWatcher {
+	return IotDeviceWatcher{dynamicClient: dynamicClient, restClient: restClient}
+}
+
+func (w IotDeviceWatcher)Watch() {
+	watcher, err := w.dynamicClient.
 		Resource(&iotDeviceResource, api.NamespaceAll).
 		Watch(&api.ListOptions{})
 
@@ -40,16 +49,12 @@ func WatchIotDevices(dynamicClient *dynamic.Client, restClient *rest.RESTClient)
 
 		iotDevice, _ := e.Object.(*types.IotDevice)
 
-		if e.Type == watch.Added {
+		if e.Type == watch.Added || e.Type == watch.Modified {
 			log.Printf("Device added %s\n", iotDevice.Metadata.Name)
-			err := addDeviceHandler(restClient, *iotDevice)
+			err := w.addModifyDeviceHandler(*iotDevice)
 			if err != nil {
-				log.Printf("Error [addDeviceHandler] %s", err.Error())
+				log.Printf("Error [addModifyDeviceHandler] %s", err.Error())
 			}
-		} else if e.Type == watch.Modified {
-			log.Printf("Modified %s\n", iotDevice.Metadata.SelfLink)
-		} else if e.Type == watch.Deleted {
-			log.Printf("Deleted %s\n", iotDevice.Metadata.SelfLink)
 		} else if e.Type == watch.Error {
 			log.Println("Error")
 			break
@@ -57,10 +62,9 @@ func WatchIotDevices(dynamicClient *dynamic.Client, restClient *rest.RESTClient)
 	}
 }
 
-func addDeviceHandler(restClient *rest.RESTClient, iotDevice types.IotDevice) error {
-	var unschedulable bool
+func (w IotDeviceWatcher)addModifyDeviceHandler(iotDevice types.IotDevice) error {
+	var unschedulable bool = false
 	var err error
-	daemonSets, _ := kubernetes.GetDeviceDaemonSets(restClient, iotDevice)
 
 	unschedulableLabel, ok := iotDevice.Metadata.Labels[types.Unschedulable]
 
@@ -74,25 +78,26 @@ func addDeviceHandler(restClient *rest.RESTClient, iotDevice types.IotDevice) er
 	deviceName := iotDevice.Metadata.Name
 
 	if unschedulable {
-		log.Printf("[addDeviceHandler] Delete pods for unschedulable device %s", deviceName)
-		pods, err := kubernetes.GetDevicePods(restClient, iotDevice)
+		log.Printf("[addModifyDeviceHandler] Delete pods for unschedulable device %s", deviceName)
+		pods, err := kubernetes.GetDevicePods(w.restClient, iotDevice)
 		if err != nil {
 			return err
 		}
 
 		for _, pod := range pods {
-			err := deletePod(restClient, pod)
+			err := w.deletePod(pod)
 			if err != nil {
 				return err
 			}
 		}
 
 	} else {
+		daemonSets, _ := kubernetes.GetDeviceDaemonSets(w.restClient, iotDevice)
 		for _, ds := range daemonSets {
 
-			if !kubernetes.IsPodCreated(restClient, ds, iotDevice) {
-				log.Printf("[addDeviceHandler] Create new pod %s ", ds.Metadata.Name)
-				err := createPod(restClient, ds, deviceName)
+			if !kubernetes.IsPodCreated(w.restClient, ds, iotDevice) {
+				log.Printf("[addModifyDeviceHandler] Create new pod %s ", ds.Metadata.Name)
+				err := w.createPod(ds, deviceName)
 				if err != nil {
 					return err
 				}
@@ -102,7 +107,7 @@ func addDeviceHandler(restClient *rest.RESTClient, iotDevice types.IotDevice) er
 	return nil
 }
 
-func createPod(restClient *rest.RESTClient, ds types.IotDaemonSet, deviceName string) error {
+func (w IotDeviceWatcher)createPod(ds types.IotDaemonSet, deviceName string) error {
 
 	newPod := types.IotPod{}
 	name := ds.Metadata.Name
@@ -120,7 +125,7 @@ func createPod(restClient *rest.RESTClient, ds types.IotDaemonSet, deviceName st
 		Spec: ds.Spec.Template.Spec,
 	}
 
-	return restClient.Post().
+	return w.restClient.Post().
 		Namespace(pod.Metadata.Namespace).
 		Resource(types.IotPodType).
 		Body(&pod).
@@ -129,9 +134,9 @@ func createPod(restClient *rest.RESTClient, ds types.IotDaemonSet, deviceName st
 
 }
 
-func deletePod(restClient *rest.RESTClient, pod types.IotPod) error {
+func (w IotDeviceWatcher)deletePod(pod types.IotPod) error {
 
-	return restClient.Delete().
+	return w.restClient.Delete().
 		Namespace(pod.Metadata.Namespace).
 		Resource(types.IotPodType).
 		Name(pod.Metadata.Name).
