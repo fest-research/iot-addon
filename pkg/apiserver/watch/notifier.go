@@ -8,7 +8,7 @@ import (
 	"github.com/emicklei/go-restful"
 	"github.com/emicklei/go-restful/log"
 	"github.com/fest-research/iot-addon/pkg/api/v1"
-	"github.com/fest-research/iot-addon/pkg/apiserver/controller"
+	ctrl "github.com/fest-research/iot-addon/pkg/apiserver/controller"
 
 	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/apimachinery/pkg/watch"
@@ -17,12 +17,12 @@ import (
 var defaultTimeout = 10 * time.Minute
 
 type Notifier struct {
-	controllers []controller.WatchEventController
+	controllers []ctrl.WatchEventController
 	timeout     time.Duration
 }
 
 // Controllers are executed in registration order
-func (this *Notifier) Register(controllers ...controller.WatchEventController) {
+func (this *Notifier) Register(controllers ...ctrl.WatchEventController) {
 	this.controllers = append(this.controllers, controllers...)
 }
 
@@ -94,5 +94,5 @@ func (this Notifier) toEvent(event watch.Event) v1.Event {
 }
 
 func NewNotifier() *Notifier {
-	return &Notifier{controllers: make([]controller.WatchEventController, 0), timeout: defaultTimeout}
+	return &Notifier{controllers: make([]ctrl.WatchEventController, 0), timeout: defaultTimeout}
 }

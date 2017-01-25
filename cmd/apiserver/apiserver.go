@@ -51,10 +51,10 @@ func main() {
 	installer := api.APIInstaller{Root: rootPath, Version: version}
 
 	// Create api proxy TODO: poll server and check if address is correct
-	proxy := proxy.NewProxy(tprClient, *argApiserverHost)
+	serverProxy := proxy.NewProxy(tprClient, *argApiserverHost)
 
 	// Create service factory
-	serviceFactory := handler.NewServiceFactory(proxy)
+	serviceFactory := handler.NewServiceFactory(serverProxy)
 
 	ws := installer.NewWebService()
 	installer.Install(ws, serviceFactory.GetRegisteredServices())

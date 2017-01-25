@@ -1,9 +1,11 @@
 package controller
 
 import (
+	"encoding/json"
+	"strings"
+
 	"github.com/fest-research/iot-addon/pkg/api/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/apimachinery/pkg/watch"
 	kubeapi "k8s.io/client-go/pkg/api/v1"
 )
@@ -89,15 +91,14 @@ func (this NodeController) ToUnstructured(node *kubeapi.Node) (*unstructured.Uns
 
 // Converts unstructured iot device to node json bytes array
 func (this NodeController) ToBytes(unstructured *unstructured.Unstructured) ([]byte, error) {
-	// TODO: improve this hack later on
-	unstructured = fixImageSizeNotation(unstructured)
 	marshalledIotDevice, err := unstructured.MarshalJSON()
 	if err != nil {
 		return nil, err
 	}
 
 	iotDevice := &v1.IotDevice{}
-	err = json.Unmarshal(marshalledIotDevice, iotDevice)
+	d := json.NewDecoder(strings.NewReader(string(marshalledIotDevice)))
+	err = d.Decode(iotDevice)
 	if err != nil {
 		return nil, err
 	}
@@ -109,32 +110,6 @@ func (this NodeController) ToBytes(unstructured *unstructured.Unstructured) ([]b
 	}
 
 	return marshalledNode, nil
-}
-
-// TODO find a better way to deal with this
-func fixImageSizeNotation(unstructured *unstructured.Unstructured) *unstructured.Unstructured {
-	statusInterface := unstructured.Object["status"]
-	statusMap := statusInterface.(map[string]interface{})
-
-	imagesInterface := statusMap["images"]
-	if imagesInterface == nil {
-		return unstructured
-	}
-
-	imagesInterfaces := imagesInterface.([]interface{})
-
-	for _, imageInterface := range imagesInterfaces {
-		imageMap := imageInterface.(map[string]interface{})
-		sizeInterface := imageMap["sizeBytes"]
-		switch sizeInterface.(type) {
-		case float64:
-			sizeBytes := sizeInterface.(float64)
-			sizeBytesInt := int64(sizeBytes)
-			imageMap["sizeBytes"] = sizeBytesInt
-		}
-	}
-
-	return unstructured
 }
 
 func NewNodeController() INodeController {

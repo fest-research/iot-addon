@@ -52,7 +52,9 @@ func (this podController) ToPod(iotPod *v1.IotPod) *kubeapi.Pod {
 	pod.ObjectMeta = iotPod.Metadata
 	pod.Status = iotPod.Status
 
-	pod.Spec.Containers[0].ImagePullPolicy = kubeapi.PullIfNotPresent
+	for i := range pod.Spec.Containers {
+		pod.Spec.Containers[i].ImagePullPolicy = kubeapi.PullAlways
+	}
 	pod.Spec.RestartPolicy = kubeapi.RestartPolicyAlways
 	pod.Spec.DNSPolicy = kubeapi.DNSClusterFirst
 
