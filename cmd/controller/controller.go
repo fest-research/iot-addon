@@ -3,10 +3,11 @@ package main
 import (
 	"flag"
 
+	"time"
+
 	"github.com/fest-research/iot-addon/pkg/controller/watch"
 	"github.com/fest-research/iot-addon/pkg/kubernetes"
 	"github.com/spf13/pflag"
-	"time"
 )
 
 var (

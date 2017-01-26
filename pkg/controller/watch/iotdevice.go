@@ -3,6 +3,8 @@ package watch
 import (
 	"log"
 
+	"strconv"
+
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/common"
 	"github.com/fest-research/iot-addon/pkg/kubernetes"
@@ -12,7 +14,6 @@ import (
 	"k8s.io/client-go/pkg/api"
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/rest"
-	"strconv"
 )
 
 type IotDeviceWatcher struct {
