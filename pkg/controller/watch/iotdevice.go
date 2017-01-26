@@ -2,11 +2,8 @@ package watch
 
 import (
 	"log"
-
-	"strconv"
-
+	
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
-	"github.com/fest-research/iot-addon/pkg/common"
 	"github.com/fest-research/iot-addon/pkg/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
@@ -65,7 +62,7 @@ func (w IotDeviceWatcher) Watch() {
 
 func (w IotDeviceWatcher) addModifyDeviceHandler(iotDevice types.IotDevice) error {
 
-	unschedulable := GetUnschedulableLabelFromDevice(iotDevice)
+	unschedulable := kubernetes.GetUnschedulableLabelFromDevice(iotDevice)
 	deviceName := iotDevice.Metadata.Name
 
 	if unschedulable {
@@ -88,7 +85,7 @@ func (w IotDeviceWatcher) addModifyDeviceHandler(iotDevice types.IotDevice) erro
 
 			if !kubernetes.IsPodCreated(w.restClient, ds, iotDevice) {
 				log.Printf("[addModifyDeviceHandler] Create new pod %s ", ds.Metadata.Name)
-				err := w.createPod(ds, deviceName)
+				err := kubernetes.CreateDaemonSetPod(ds, iotDevice, w.restClient)
 				if err != nil {
 					return err
 				}
@@ -96,33 +93,6 @@ func (w IotDeviceWatcher) addModifyDeviceHandler(iotDevice types.IotDevice) erro
 		}
 	}
 	return nil
-}
-
-func (w IotDeviceWatcher) createPod(ds types.IotDaemonSet, deviceName string) error {
-
-	newPod := types.IotPod{}
-	name := ds.Metadata.Name
-
-	pod := types.IotPod{
-		TypeMeta: createTypeMeta(ds.APIVersion),
-		Metadata: v1.ObjectMeta{
-			Name:      name + "-" + string(common.NewUUID()),
-			Namespace: ds.Metadata.Namespace,
-			Labels: map[string]string{
-				types.CreatedBy:      types.IotDaemonSetType + "." + name,
-				types.DeviceSelector: deviceName,
-			},
-		},
-		Spec: ds.Spec.Template.Spec,
-	}
-
-	return w.restClient.Post().
-		Namespace(pod.Metadata.Namespace).
-		Resource(types.IotPodType).
-		Body(&pod).
-		Do().
-		Into(&newPod)
-
 }
 
 func (w IotDeviceWatcher) deletePod(pod types.IotPod) error {
@@ -142,18 +112,4 @@ func createTypeMeta(apiVersion string) metav1.TypeMeta {
 		Kind:       types.IotPodKind,
 		APIVersion: apiVersion,
 	}
-}
-
-func GetUnschedulableLabelFromDevice(iotDevice types.IotDevice) bool {
-
-	unschedulableLabel, ok := iotDevice.Metadata.Labels[types.Unschedulable]
-
-	if ok {
-		unschedulable, err := strconv.ParseBool(unschedulableLabel)
-		if err != nil {
-			return false
-		}
-		return unschedulable
-	}
-	return false
 }

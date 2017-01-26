@@ -14,6 +14,12 @@ import (
 
 // CreateDaemonSetPod created ds pod on specific device
 func CreateDaemonSetPod(ds types.IotDaemonSet, device types.IotDevice, restClient *rest.RESTClient) error {
+
+	labels := map[string]string{
+		types.CreatedBy:      types.IotDaemonSetType + "." + ds.Metadata.Name,
+		types.DeviceSelector: device.Metadata.Name,
+	}
+	common.MapCopy(labels, ds.Spec.Template.ObjectMeta.Labels)
 	return restClient.Post().
 		Namespace(ds.Metadata.Namespace).
 		Resource(types.IotPodType).
@@ -25,10 +31,7 @@ func CreateDaemonSetPod(ds types.IotDaemonSet, device types.IotDevice, restClien
 			Metadata: v1.ObjectMeta{
 				Name:      ds.Metadata.Name + "-" + string(common.NewUUID()), // TODO use template val
 				Namespace: ds.Metadata.Namespace,
-				Labels: map[string]string{
-					types.CreatedBy:      types.IotDaemonSetType + "." + ds.Metadata.Name,
-					types.DeviceSelector: device.Metadata.Name,
-				},
+				Labels: labels,
 			},
 			Spec: ds.Spec.Template.Spec,
 		}).Do().Error()
@@ -48,20 +51,22 @@ func IsPodCorrectlyScheduled(ds types.IotDaemonSet, pod types.IotPod) bool {
 func GetDevicesMissingPods(dsDestinedDevices []types.IotDevice, existingPods []types.IotPod) []types.IotDevice {
 	var devicesMissingPod []types.IotDevice
 	for _, device := range dsDestinedDevices {
-
-		// Assume that device has missing pod.
-		isPodMissing := true
-		for _, pod := range existingPods {
-			// Check if it really has iterating through all pods and checking them.
-			if pod.Metadata.Labels[types.DeviceSelector] == device.Metadata.Name {
-				isPodMissing = false
-				break
+		unschedulable := GetUnschedulableLabelFromDevice(device)
+		if !unschedulable {
+			// Assume that device has missing pod.
+			isPodMissing := true
+			for _, pod := range existingPods {
+				// Check if it really has iterating through all pods and checking them.
+				if pod.Metadata.Labels[types.DeviceSelector] == device.Metadata.Name {
+					isPodMissing = false
+					break
+				}
 			}
-		}
 
-		// If device has missing pod, then it has to be added to output array.
-		if isPodMissing {
-			devicesMissingPod = append(devicesMissingPod, device)
+			// If device has missing pod, then it has to be added to output array.
+			if isPodMissing {
+				devicesMissingPod = append(devicesMissingPod, device)
+			}
 		}
 	}
 	return devicesMissingPod
@@ -87,7 +92,28 @@ func DeletePod(restClient *rest.RESTClient, pod types.IotPod) {
 // TODO Update name, namespace and labels?
 // TODO Save updated pod.
 func UpdatePod(restClient *rest.RESTClient, pod types.IotPod, template v1.PodTemplateSpec) {
+	newPod := types.IotPod{}
 	pod.Spec = template.Spec
+
+	labels := map[string]string{
+		types.CreatedBy:     pod.Metadata.Labels[types.CreatedBy],
+		types.DeviceSelector: pod.Metadata.Labels[types.DeviceSelector],
+	}
+	common.MapCopy(labels, template.ObjectMeta.Labels)
+
+	pod.Metadata.Labels = labels
+
+	err := restClient.Put().
+		Namespace(pod.Metadata.Namespace).
+		Resource(types.IotPodType).
+	        Name(pod.Metadata.Name).
+		Body(&pod).
+		Do().
+		Into(&newPod)
+	if err != nil {
+		log.Printf("Error. Can not update IotPod %s", pod.Metadata.Name)
+	}
+
 }
 
 // IsPodCreated checks if there is any IotPod created for IotDaemonSet on IotDevice.

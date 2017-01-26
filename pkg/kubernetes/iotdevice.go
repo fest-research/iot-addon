@@ -8,6 +8,7 @@ import (
 	"k8s.io/client-go/pkg/api"
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/rest"
+	"strconv"
 )
 
 // GetAllDevices returns all IotDevices from selected namespace.
@@ -76,4 +77,18 @@ func GetDevicePods(restClient *rest.RESTClient, device types.IotDevice) ([]types
 		Do().
 		Into(&podList)
 	return podList.Items, err
+}
+
+func GetUnschedulableLabelFromDevice(iotDevice types.IotDevice) bool {
+
+	unschedulableLabel, ok := iotDevice.Metadata.Labels[types.Unschedulable]
+
+	if ok {
+		unschedulable, err := strconv.ParseBool(unschedulableLabel)
+		if err != nil {
+			return false
+		}
+		return unschedulable
+	}
+	return false
 }
