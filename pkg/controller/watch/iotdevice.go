@@ -29,7 +29,7 @@ func NewIotDeviceWatcher(dynamicClient *dynamic.Client, restClient *rest.RESTCli
 	return IotDeviceWatcher{dynamicClient: dynamicClient, restClient: restClient}
 }
 
-func (w IotDeviceWatcher)Watch() {
+func (w IotDeviceWatcher) Watch() {
 	watcher, err := w.dynamicClient.
 		Resource(&iotDeviceResource, api.NamespaceAll).
 		Watch(&api.ListOptions{})
@@ -62,19 +62,9 @@ func (w IotDeviceWatcher)Watch() {
 	}
 }
 
-func (w IotDeviceWatcher)addModifyDeviceHandler(iotDevice types.IotDevice) error {
-	var unschedulable bool = false
-	var err error
+func (w IotDeviceWatcher) addModifyDeviceHandler(iotDevice types.IotDevice) error {
 
-	unschedulableLabel, ok := iotDevice.Metadata.Labels[types.Unschedulable]
-
-	if ok {
-		unschedulable, err = strconv.ParseBool(unschedulableLabel)
-		if err != nil {
-			return err
-		}
-	}
-
+	unschedulable := GetUnschedulableLabelFromDevice(iotDevice)
 	deviceName := iotDevice.Metadata.Name
 
 	if unschedulable {
@@ -107,7 +97,7 @@ func (w IotDeviceWatcher)addModifyDeviceHandler(iotDevice types.IotDevice) error
 	return nil
 }
 
-func (w IotDeviceWatcher)createPod(ds types.IotDaemonSet, deviceName string) error {
+func (w IotDeviceWatcher) createPod(ds types.IotDaemonSet, deviceName string) error {
 
 	newPod := types.IotPod{}
 	name := ds.Metadata.Name
@@ -134,7 +124,7 @@ func (w IotDeviceWatcher)createPod(ds types.IotDaemonSet, deviceName string) err
 
 }
 
-func (w IotDeviceWatcher)deletePod(pod types.IotPod) error {
+func (w IotDeviceWatcher) deletePod(pod types.IotPod) error {
 
 	return w.restClient.Delete().
 		Namespace(pod.Metadata.Namespace).
@@ -151,4 +141,18 @@ func createTypeMeta(apiVersion string) metav1.TypeMeta {
 		Kind:       types.IotPodKind,
 		APIVersion: apiVersion,
 	}
+}
+
+func GetUnschedulableLabelFromDevice(iotDevice types.IotDevice) bool {
+
+	unschedulableLabel, ok := iotDevice.Metadata.Labels[types.Unschedulable]
+
+	if ok {
+		unschedulable, err := strconv.ParseBool(unschedulableLabel)
+		if err != nil {
+			return false
+		}
+		return unschedulable
+	}
+	return false
 }

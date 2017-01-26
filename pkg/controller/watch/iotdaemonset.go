@@ -69,7 +69,9 @@ func (w IotDaemonSetWatcher) handleDaemonSetAddition(ds types.IotDaemonSet) {
 
 	// Creating IotPods on selected IotDevices if they don't exist yet.
 	for _, device := range devices {
-		if !kubernetes.IsPodCreated(w.restClient, ds, device) {
+
+		unschedulable := GetUnschedulableLabelFromDevice(device)
+		if !kubernetes.IsPodCreated(w.restClient, ds, device) && !unschedulable {
 			kubernetes.CreateDaemonSetPod(ds, device, w.restClient)
 		}
 	}
