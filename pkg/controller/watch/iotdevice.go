@@ -2,7 +2,7 @@ package watch
 
 import (
 	"log"
-	
+
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,6 +16,7 @@ import (
 type IotDeviceWatcher struct {
 	dynamicClient *dynamic.Client
 	restClient    *rest.RESTClient
+	modificationMap map[string]bool
 }
 
 var iotDeviceResource = metav1.APIResource{
@@ -24,7 +25,7 @@ var iotDeviceResource = metav1.APIResource{
 }
 
 func NewIotDeviceWatcher(dynamicClient *dynamic.Client, restClient *rest.RESTClient) IotDeviceWatcher {
-	return IotDeviceWatcher{dynamicClient: dynamicClient, restClient: restClient}
+	return IotDeviceWatcher{dynamicClient: dynamicClient, restClient: restClient, modificationMap: map[string]bool{}}
 }
 
 func (w IotDeviceWatcher) Watch() {
@@ -47,12 +48,26 @@ func (w IotDeviceWatcher) Watch() {
 
 		iotDevice, _ := e.Object.(*types.IotDevice)
 
-		if e.Type == watch.Added || e.Type == watch.Modified {
+		if e.Type == watch.Added {
 			log.Printf("Device added %s\n", iotDevice.Metadata.Name)
+			unschedulable := kubernetes.GetUnschedulableLabelFromDevice(*iotDevice)
+			w.modificationMap[iotDevice.Metadata.Name] = unschedulable
 			err := w.addModifyDeviceHandler(*iotDevice)
 			if err != nil {
 				log.Printf("Error [addModifyDeviceHandler] %s", err.Error())
 			}
+		} else if e.Type == watch.Modified {
+			unschedulable := kubernetes.GetUnschedulableLabelFromDevice(*iotDevice)
+			prevUnschedulable := w.modificationMap[iotDevice.Metadata.Name]
+			if(unschedulable != prevUnschedulable) {
+				log.Printf("Device  modified %s\n", iotDevice.Metadata.Name)
+				err := w.addModifyDeviceHandler(*iotDevice)
+				if err != nil {
+					log.Printf("Error [addModifyDeviceHandler] %s", err.Error())
+				}
+			}
+			w.modificationMap[iotDevice.Metadata.Name] = unschedulable
+
 		} else if e.Type == watch.Error {
 			log.Println("Error")
 			break
