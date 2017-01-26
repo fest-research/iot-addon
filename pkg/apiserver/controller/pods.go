@@ -3,9 +3,11 @@ package controller
 import (
 	"github.com/fest-research/iot-addon/pkg/api/v1"
 
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/apimachinery/pkg/watch"
+
 	kubeapi "k8s.io/client-go/pkg/api/v1"
 )
 
@@ -31,8 +33,7 @@ func (this podController) TransformWatchEvent(event watch.Event) watch.Event {
 func (this podController) ToPodList(iotPodList *v1.IotPodList) *kubeapi.PodList {
 	podList := &kubeapi.PodList{}
 
-	podList.Kind = "PodList"
-	podList.APIVersion = "v1"
+	podList.TypeMeta = this.getTypeMeta(v1.PodListKind)
 	podList.Items = make([]kubeapi.Pod, 0)
 
 	for _, iotPod := range iotPodList.Items {
@@ -46,20 +47,13 @@ func (this podController) ToPodList(iotPodList *v1.IotPodList) *kubeapi.PodList 
 func (this podController) ToPod(iotPod *v1.IotPod) *kubeapi.Pod {
 	pod := &kubeapi.Pod{}
 
-	pod.Kind = "Pod"
-	pod.APIVersion = "v1"
+	pod.TypeMeta = this.getTypeMeta(v1.PodKind)
+
 	pod.Spec = iotPod.Spec
 	pod.ObjectMeta = iotPod.Metadata
 	pod.Status = iotPod.Status
 
-	for i := range pod.Spec.Containers {
-		pod.Spec.Containers[i].ImagePullPolicy = kubeapi.PullAlways
-	}
-	pod.Spec.RestartPolicy = kubeapi.RestartPolicyAlways
-	pod.Spec.DNSPolicy = kubeapi.DNSClusterFirst
-
-	pod.Status.Phase = kubeapi.PodPending
-	pod.Status.QOSClass = kubeapi.PodQOSBestEffort
+	pod = this.setRequiredFields(pod)
 
 	return pod
 }
@@ -67,8 +61,8 @@ func (this podController) ToPod(iotPod *v1.IotPod) *kubeapi.Pod {
 func (this podController) ToIotPod(pod *kubeapi.Pod) *v1.IotPod {
 	iotPod := &v1.IotPod{}
 
-	iotPod.Kind = "IotPod"
-	iotPod.APIVersion = "fujitsu.com/v1"
+	iotPod.TypeMeta = this.getIotTypeMeta()
+
 	iotPod.Spec = pod.Spec
 	iotPod.Metadata = pod.ObjectMeta
 	iotPod.Status = pod.Status
@@ -114,6 +108,34 @@ func (this podController) ToBytes(unstructured *unstructured.Unstructured) ([]by
 	}
 
 	return marshalledPod, nil
+}
+
+func (this podController) getIotTypeMeta() metav1.TypeMeta {
+	return metav1.TypeMeta{
+		APIVersion: v1.IotAPIVersion,
+		Kind:       v1.IotPodKind,
+	}
+}
+
+func (this podController) getTypeMeta(kind v1.ResourceKind) metav1.TypeMeta {
+	return metav1.TypeMeta{
+		APIVersion: v1.APIVersion,
+		Kind:       string(kind),
+	}
+}
+
+func (this podController) setRequiredFields(pod *kubeapi.Pod) *kubeapi.Pod {
+	for i := range pod.Spec.Containers {
+		pod.Spec.Containers[i].ImagePullPolicy = kubeapi.PullAlways
+	}
+
+	pod.Spec.RestartPolicy = kubeapi.RestartPolicyAlways
+	pod.Spec.DNSPolicy = kubeapi.DNSClusterFirst
+
+	pod.Status.Phase = kubeapi.PodPending
+	pod.Status.QOSClass = kubeapi.PodQOSBestEffort
+
+	return pod
 }
 
 func NewPodController() IPodController {

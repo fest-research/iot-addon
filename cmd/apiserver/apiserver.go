@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/emicklei/go-restful"
+	"github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/apiserver/api"
 	"github.com/fest-research/iot-addon/pkg/apiserver/api/handler"
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
@@ -22,8 +23,7 @@ var (
 )
 
 const (
-	version  = "v1"
-	rootPath = "/api/" + version
+	rootPath = "/api/" + v1.APIVersion
 )
 
 func main() {
@@ -48,7 +48,7 @@ func main() {
 	tprClient := kube.NewDynamicClient(config)
 
 	// Create api installer
-	installer := api.APIInstaller{Root: rootPath, Version: version}
+	installer := api.APIInstaller{Root: rootPath, Version: v1.APIVersion}
 
 	// Create api proxy TODO: poll server and check if address is correct
 	serverProxy := proxy.NewProxy(tprClient, *argApiserverHost)

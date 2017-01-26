@@ -1,12 +1,13 @@
 package controller
 
 import (
-	"encoding/json"
-	"strings"
-
 	"github.com/fest-research/iot-addon/pkg/api/v1"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/apimachinery/pkg/watch"
+
 	kubeapi "k8s.io/client-go/pkg/api/v1"
 )
 
@@ -20,19 +21,18 @@ type INodeController interface {
 	ToBytes(*unstructured.Unstructured) ([]byte, error)
 }
 
-type NodeController struct{}
+type nodeController struct{}
 
-func (this NodeController) TransformWatchEvent(event watch.Event) watch.Event {
+func (this nodeController) TransformWatchEvent(event watch.Event) watch.Event {
 	iotDevice := event.Object.(*v1.IotDevice)
 	event.Object = this.ToNode(iotDevice)
 	return event
 }
 
-func (this NodeController) ToNodeList(iotDeviceList *v1.IotDeviceList) *kubeapi.NodeList {
+func (this nodeController) ToNodeList(iotDeviceList *v1.IotDeviceList) *kubeapi.NodeList {
 	nodeList := &kubeapi.NodeList{}
 
-	nodeList.Kind = "NodeList"
-	nodeList.APIVersion = "v1"
+	nodeList.TypeMeta = this.getTypeMeta(v1.NodeListKind)
 	nodeList.Items = make([]kubeapi.Node, 0)
 
 	for _, iotDevice := range iotDeviceList.Items {
@@ -43,12 +43,12 @@ func (this NodeController) ToNodeList(iotDeviceList *v1.IotDeviceList) *kubeapi.
 	return nodeList
 }
 
-func (this NodeController) ToNode(iotDevice *v1.IotDevice) *kubeapi.Node {
+func (this nodeController) ToNode(iotDevice *v1.IotDevice) *kubeapi.Node {
 	node := &kubeapi.Node{}
 
 	// TODO: subject to revision
-	node.Kind = "Node"
-	node.APIVersion = "v1"
+	node.TypeMeta = this.getTypeMeta(v1.NodeKind)
+
 	node.Spec = iotDevice.Spec
 	node.Status = iotDevice.Status
 	node.ObjectMeta = iotDevice.Metadata
@@ -58,12 +58,12 @@ func (this NodeController) ToNode(iotDevice *v1.IotDevice) *kubeapi.Node {
 	return node
 }
 
-func (this NodeController) ToIotDevice(node *kubeapi.Node) *v1.IotDevice {
+func (this nodeController) ToIotDevice(node *kubeapi.Node) *v1.IotDevice {
 	iotDevice := &v1.IotDevice{}
 
 	// TODO: subject to revision
-	iotDevice.Kind = "IotDevice"
-	iotDevice.APIVersion = "fujitsu.com/v1"
+	iotDevice.TypeMeta = this.getIotTypeMeta()
+
 	iotDevice.Metadata = node.ObjectMeta
 	iotDevice.Status = node.Status
 	iotDevice.Spec = node.Spec
@@ -72,7 +72,7 @@ func (this NodeController) ToIotDevice(node *kubeapi.Node) *v1.IotDevice {
 }
 
 // Converts node to unstructured iot device
-func (this NodeController) ToUnstructured(node *kubeapi.Node) (*unstructured.Unstructured, error) {
+func (this nodeController) ToUnstructured(node *kubeapi.Node) (*unstructured.Unstructured, error) {
 	result := &unstructured.Unstructured{}
 	iotDevice := this.ToIotDevice(node)
 
@@ -90,15 +90,14 @@ func (this NodeController) ToUnstructured(node *kubeapi.Node) (*unstructured.Uns
 }
 
 // Converts unstructured iot device to node json bytes array
-func (this NodeController) ToBytes(unstructured *unstructured.Unstructured) ([]byte, error) {
+func (this nodeController) ToBytes(unstructured *unstructured.Unstructured) ([]byte, error) {
 	marshalledIotDevice, err := unstructured.MarshalJSON()
 	if err != nil {
 		return nil, err
 	}
 
 	iotDevice := &v1.IotDevice{}
-	d := json.NewDecoder(strings.NewReader(string(marshalledIotDevice)))
-	err = d.Decode(iotDevice)
+	err = json.Unmarshal(marshalledIotDevice, iotDevice)
 	if err != nil {
 		return nil, err
 	}
@@ -112,6 +111,20 @@ func (this NodeController) ToBytes(unstructured *unstructured.Unstructured) ([]b
 	return marshalledNode, nil
 }
 
+func (this nodeController) getIotTypeMeta() metav1.TypeMeta {
+	return metav1.TypeMeta{
+		APIVersion: v1.IotAPIVersion,
+		Kind:       v1.IotDeviceKind,
+	}
+}
+
+func (this nodeController) getTypeMeta(kind v1.ResourceKind) metav1.TypeMeta {
+	return metav1.TypeMeta{
+		APIVersion: v1.APIVersion,
+		Kind:       string(kind),
+	}
+}
+
 func NewNodeController() INodeController {
-	return &NodeController{}
+	return &nodeController{}
 }

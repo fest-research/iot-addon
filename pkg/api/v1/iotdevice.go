@@ -71,24 +71,22 @@ func (this *fakeContainerImage) toContainerImage() v1.ContainerImage {
 	}
 }
 
-type fakeStatus struct {
-	Capacity        v1.ResourceList        `json:"capacity,omitempty"`
-	Allocatable     v1.ResourceList        `json:"allocatable,omitempty"`
-	Phase           v1.NodePhase           `json:"phase,omitempty"`
-	Conditions      []v1.NodeCondition     `json:"conditions,omitempty"`
-	Addresses       []v1.NodeAddress       `json:"addresses,omitempty"`
-	DaemonEndpoints v1.NodeDaemonEndpoints `json:"daemonEndpoints,omitempty"`
-	NodeInfo        v1.NodeSystemInfo      `json:"nodeInfo,omitempty"`
-	Images          []fakeContainerImage   `json:"images,omitempty"`
-	VolumesInUse    []v1.UniqueVolumeName  `json:"volumesInUse,omitempty"`
-	VolumesAttached []v1.AttachedVolume    `json:"volumesAttached,omitempty"`
-}
-
 type fakeIotDevice struct {
 	metav1.TypeMeta `json:",inline"`
 	Metadata        v1.ObjectMeta `json:"metadata"`
 	Spec            v1.NodeSpec   `json:"spec"`
-	fakeStatus      `json:"status"`
+	Status          struct {
+		Capacity        v1.ResourceList        `json:"capacity,omitempty"`
+		Allocatable     v1.ResourceList        `json:"allocatable,omitempty"`
+		Phase           v1.NodePhase           `json:"phase,omitempty"`
+		Conditions      []v1.NodeCondition     `json:"conditions,omitempty"`
+		Addresses       []v1.NodeAddress       `json:"addresses,omitempty"`
+		DaemonEndpoints v1.NodeDaemonEndpoints `json:"daemonEndpoints,omitempty"`
+		NodeInfo        v1.NodeSystemInfo      `json:"nodeInfo,omitempty"`
+		Images          []fakeContainerImage   `json:"images,omitempty"`
+		VolumesInUse    []v1.UniqueVolumeName  `json:"volumesInUse,omitempty"`
+		VolumesAttached []v1.AttachedVolume    `json:"volumesAttached,omitempty"`
+	} `json:"status"`
 }
 
 func (this *fakeIotDevice) toIotDevice() *IotDevice {
@@ -97,19 +95,19 @@ func (this *fakeIotDevice) toIotDevice() *IotDevice {
 		Metadata: this.Metadata,
 		Spec:     this.Spec,
 		Status: v1.NodeStatus{
-			Capacity:        this.fakeStatus.Capacity,
-			Allocatable:     this.fakeStatus.Allocatable,
-			Phase:           this.fakeStatus.Phase,
-			Conditions:      this.fakeStatus.Conditions,
-			Addresses:       this.fakeStatus.Addresses,
-			DaemonEndpoints: this.fakeStatus.DaemonEndpoints,
-			NodeInfo:        this.fakeStatus.NodeInfo,
-			VolumesInUse:    this.fakeStatus.VolumesInUse,
-			VolumesAttached: this.fakeStatus.VolumesAttached,
+			Capacity:        this.Status.Capacity,
+			Allocatable:     this.Status.Allocatable,
+			Phase:           this.Status.Phase,
+			Conditions:      this.Status.Conditions,
+			Addresses:       this.Status.Addresses,
+			DaemonEndpoints: this.Status.DaemonEndpoints,
+			NodeInfo:        this.Status.NodeInfo,
+			VolumesInUse:    this.Status.VolumesInUse,
+			VolumesAttached: this.Status.VolumesAttached,
 		},
 	}
 
-	for _, image := range this.fakeStatus.Images {
+	for _, image := range this.Status.Images {
 		result.Status.Images = append(result.Status.Images, image.toContainerImage())
 	}
 
