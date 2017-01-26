@@ -73,6 +73,8 @@ func (this nodeController) ToIotDevice(node *kubeapi.Node) *v1.IotDevice {
 	iotDevice.Status = node.Status
 	iotDevice.Spec = node.Spec
 
+	// TODO: should we set namespace of iot device? Get from DB?
+
 	return iotDevice
 }
 

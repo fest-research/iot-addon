@@ -9,9 +9,9 @@ import (
 	"github.com/fest-research/iot-addon/pkg/apiserver/controller"
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
 	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
-	"k8s.io/apimachinery/pkg/util/json"
 
 	apimachinery "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/client-go/pkg/api"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
