@@ -11,10 +11,12 @@ type EventService struct {
 	proxy proxy.IRawProxy
 }
 
+// NewEventService creates the API service for handling k8s events.
 func NewEventService(proxy proxy.IRawProxy) EventService {
 	return EventService{proxy: proxy}
 }
 
+// Register creates the API routes for the EventService.
 func (this EventService) Register(ws *restful.WebService) {
 
 	// Create event

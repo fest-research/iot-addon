@@ -24,12 +24,15 @@ type IPodController interface {
 
 type podController struct{}
 
+// TransformWatchEvent converts an ADD/UPDATE/DELETE event for an IotPod to
+// an ADD/UPDATE/DELETE event for a k8s Pod
 func (this podController) TransformWatchEvent(event watch.Event) watch.Event {
 	iotPod := event.Object.(*v1.IotPod)
 	event.Object = this.ToPod(iotPod)
 	return event
 }
 
+// ToPodList converts a list of IotPods to a list of k8s Pods
 func (this podController) ToPodList(iotPodList *v1.IotPodList) *kubeapi.PodList {
 	podList := &kubeapi.PodList{}
 
@@ -44,6 +47,7 @@ func (this podController) ToPodList(iotPodList *v1.IotPodList) *kubeapi.PodList 
 	return podList
 }
 
+// ToPod converts an IotPod object to a k8s Pod object
 func (this podController) ToPod(iotPod *v1.IotPod) *kubeapi.Pod {
 	pod := &kubeapi.Pod{}
 
@@ -58,6 +62,7 @@ func (this podController) ToPod(iotPod *v1.IotPod) *kubeapi.Pod {
 	return pod
 }
 
+// ToIotPod converts a k8s Pod object to an IotPod object
 func (this podController) ToIotPod(pod *kubeapi.Pod) *v1.IotPod {
 	iotPod := &v1.IotPod{}
 
@@ -70,7 +75,7 @@ func (this podController) ToIotPod(pod *kubeapi.Pod) *v1.IotPod {
 	return iotPod
 }
 
-// Converts pod to unstructured iot pod
+// ToUnstructured converts a k8s Pod object to an unstructured IotPod
 func (this podController) ToUnstructured(pod *kubeapi.Pod) (*unstructured.Unstructured, error) {
 	result := &unstructured.Unstructured{}
 	iotPod := this.ToIotPod(pod)
@@ -88,7 +93,7 @@ func (this podController) ToUnstructured(pod *kubeapi.Pod) (*unstructured.Unstru
 	return result, nil
 }
 
-// Converts unstructured iot pod to pod json bytes array
+// ToBytes converts an unstructured IotPod to a k8s Pod json bytes array
 func (this podController) ToBytes(unstructured *unstructured.Unstructured) ([]byte, error) {
 	marshalledIotPod, err := unstructured.MarshalJSON()
 	if err != nil {

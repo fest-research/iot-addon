@@ -23,10 +23,12 @@ type NodeService struct {
 	nodeController controller.INodeController
 }
 
+// NewNodeService creates the API service for translating k8s Nodes into IotDevices.
 func NewNodeService(proxy proxy.IServerProxy, controller controller.INodeController) NodeService {
 	return NodeService{proxy: proxy, nodeController: controller}
 }
 
+// Register creates the api routes for the NodeService.
 func (this NodeService) Register(ws *restful.WebService) {
 	// Create node
 	ws.Route(

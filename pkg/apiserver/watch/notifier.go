@@ -30,6 +30,9 @@ func (this *Notifier) SetTimeout(timeout time.Duration) {
 	this.timeout = timeout
 }
 
+// Start starts the notifier, which will "notify" every time the watcher produces an Event by
+// writing a transformation of the produced Event to the response. The transformation of the
+// Event is done by the registered controllers, in the order they were registered.
 func (this *Notifier) Start(watcher watch.Interface, response *restful.Response) error {
 	log.Printf("[Notifier] Starting watch client notifier.")
 	cn, ok := response.ResponseWriter.(http.CloseNotifier)

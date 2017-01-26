@@ -14,6 +14,7 @@ type ServiceFactory struct {
 	services []IService
 }
 
+// NewServiceFactory creates a factory that registers all all supported services.
 func NewServiceFactory(proxy *proxy.Proxy) *ServiceFactory {
 	factory := &ServiceFactory{proxy: proxy, services: make([]IService, 0)}
 	factory.init()
@@ -42,6 +43,7 @@ func (this *ServiceFactory) init() {
 	this.registerService(NewKubeService(this.proxy.RawProxy))
 }
 
+// GetRegisteredServices returns the list of all API services that are currently registered.
 func (this *ServiceFactory) GetRegisteredServices() []IService {
 	return this.services
 }

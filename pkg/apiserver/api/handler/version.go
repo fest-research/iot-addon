@@ -11,10 +11,12 @@ type VersionService struct {
 	proxy proxy.IRawProxy
 }
 
+// NewVersionService creates the API service for the version of the IotAPIServer.
 func NewVersionService(proxy proxy.IRawProxy) VersionService {
 	return VersionService{proxy: proxy}
 }
 
+// Register creates the API routes for the VersionService.
 func (this VersionService) Register(ws *restful.WebService) {
 	// Read
 	ws.Route(

@@ -12,10 +12,12 @@ type KubeService struct {
 	proxy proxy.IRawProxy
 }
 
+// NewKubeService creates the API service as a proxy to k8s Service resources.
 func NewKubeService(proxy proxy.IRawProxy) KubeService {
 	return KubeService{proxy: proxy}
 }
 
+// Register creates the API routes for the KubeService.
 func (this KubeService) Register(ws *restful.WebService) {
 	// List services
 	ws.Route(

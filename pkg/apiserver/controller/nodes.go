@@ -23,12 +23,15 @@ type INodeController interface {
 
 type nodeController struct{}
 
+// TransformWatchEvent converts an ADD/UPDATE/DELETE event for an IotDevice to
+// an ADD/UPDATE/DELETE event for a k8s Node
 func (this nodeController) TransformWatchEvent(event watch.Event) watch.Event {
 	iotDevice := event.Object.(*v1.IotDevice)
 	event.Object = this.ToNode(iotDevice)
 	return event
 }
 
+// ToNodeList converts a list of IotDevices to a list of k8s Nodes
 func (this nodeController) ToNodeList(iotDeviceList *v1.IotDeviceList) *kubeapi.NodeList {
 	nodeList := &kubeapi.NodeList{}
 
@@ -43,6 +46,7 @@ func (this nodeController) ToNodeList(iotDeviceList *v1.IotDeviceList) *kubeapi.
 	return nodeList
 }
 
+// ToNode converts an IotDevice object to a k8s Node object
 func (this nodeController) ToNode(iotDevice *v1.IotDevice) *kubeapi.Node {
 	node := &kubeapi.Node{}
 
@@ -58,6 +62,7 @@ func (this nodeController) ToNode(iotDevice *v1.IotDevice) *kubeapi.Node {
 	return node
 }
 
+// ToIotDevice converts a k8s Node object to an IotDevice object
 func (this nodeController) ToIotDevice(node *kubeapi.Node) *v1.IotDevice {
 	iotDevice := &v1.IotDevice{}
 
@@ -71,7 +76,7 @@ func (this nodeController) ToIotDevice(node *kubeapi.Node) *v1.IotDevice {
 	return iotDevice
 }
 
-// Converts node to unstructured iot device
+// ToUnstructured converts node to unstructured iot device
 func (this nodeController) ToUnstructured(node *kubeapi.Node) (*unstructured.Unstructured, error) {
 	result := &unstructured.Unstructured{}
 	iotDevice := this.ToIotDevice(node)
@@ -89,7 +94,7 @@ func (this nodeController) ToUnstructured(node *kubeapi.Node) (*unstructured.Uns
 	return result, nil
 }
 
-// Converts unstructured iot device to node json bytes array
+// ToBytes converts unstructured iot device to node json bytes array
 func (this nodeController) ToBytes(unstructured *unstructured.Unstructured) ([]byte, error) {
 	marshalledIotDevice, err := unstructured.MarshalJSON()
 	if err != nil {

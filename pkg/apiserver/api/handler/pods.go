@@ -28,10 +28,12 @@ type PodService struct {
 	podController controller.IPodController
 }
 
+// NewPodService creates the API service for translating IotPods into k8s Pods, sent back to the kubelet.
 func NewPodService(proxy proxy.IServerProxy, controller controller.IPodController) PodService {
 	return PodService{proxy: proxy, podController: controller}
 }
 
+// Register creates the API routes for the PodService.
 func (this PodService) Register(ws *restful.WebService) {
 	// List pods
 	ws.Route(
