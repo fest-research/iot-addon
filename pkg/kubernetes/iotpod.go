@@ -3,8 +3,6 @@ package kubernetes
 import (
 	"log"
 
-	"fmt"
-
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
