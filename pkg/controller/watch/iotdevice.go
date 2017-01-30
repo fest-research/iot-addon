@@ -11,6 +11,7 @@ import (
 	"k8s.io/client-go/pkg/api"
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/rest"
+	"time"
 )
 
 type IotDeviceWatcher struct {
@@ -28,15 +29,29 @@ func NewIotDeviceWatcher(dynamicClient *dynamic.Client, restClient *rest.RESTCli
 }
 
 func (w IotDeviceWatcher) Watch() {
-	watcher, err := w.dynamicClient.
-		Resource(&iotDeviceResource, api.NamespaceAll).
-		Watch(&api.ListOptions{})
 
-	if err != nil {
-		log.Println(err.Error())
+	var watcher watch.Interface = nil
+	var err error = nil
+	ticker := time.NewTicker(time.Second * 4)
+	defer ticker.Stop()
+
+	for ok := true; ok; ok = (watcher == nil) {
+		select {
+		case <-ticker.C:
+			watcher, err = w.dynamicClient.
+				Resource(&iotDeviceResource, api.NamespaceAll).
+				Watch(&api.ListOptions{})
+			if err != nil {
+				log.Println(err.Error())
+			} else {
+				ticker.Stop()
+			}
+			break
+		}
 	}
 
 	defer watcher.Stop()
+	log.Printf("Watcher for %s created \n", types.IotDeviceType)
 
 	for {
 		e, ok := <-watcher.ResultChan()
@@ -59,7 +74,7 @@ func (w IotDeviceWatcher) Watch() {
 		} else if e.Type == watch.Modified {
 			unschedulable := kubernetes.GetUnschedulableLabelFromDevice(*iotDevice)
 			prevUnschedulable := modificationMap[iotDevice.Metadata.Name]
-			if(unschedulable != prevUnschedulable) {
+			if unschedulable != prevUnschedulable {
 				log.Printf("Device  modified %s\n", iotDevice.Metadata.Name)
 				err := w.addModifyDeviceHandler(*iotDevice)
 				if err != nil {

@@ -10,6 +10,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/pkg/api"
 	"k8s.io/client-go/rest"
+	"time"
 )
 
 type IotDaemonSetWatcher struct {
@@ -23,16 +24,30 @@ func NewIotDaemonSetWatcher(dynamicClient *dynamic.Client, restClient *rest.REST
 
 // WatchIotDaemonSet watches for IotDaemonSet events and handles them.
 func (w IotDaemonSetWatcher) Watch() {
-	watcher, err := w.dynamicClient.Resource(&v1.APIResource{
-		Name:       types.IotDaemonSetType,
-		Namespaced: true,
-	}, api.NamespaceAll).Watch(&api.ListOptions{})
+	var watcher watch.Interface = nil
+	var err error = nil
 
-	if err != nil {
-		log.Println(err.Error())
+	ticker := time.NewTicker(time.Second * 4)
+	defer ticker.Stop()
+
+	for ok := true; ok; ok = (watcher == nil) {
+		select {
+		case <-ticker.C:
+			watcher, err = w.dynamicClient.Resource(&v1.APIResource{
+				Name:       types.IotDaemonSetType,
+				Namespaced: true,
+			}, api.NamespaceAll).Watch(&api.ListOptions{})
+			if err != nil {
+				log.Println(err.Error())
+			} else {
+				ticker.Stop()
+			}
+			break
+		}
 	}
 
 	defer watcher.Stop()
+	log.Printf("Watcher for %s created \n", types.IotDaemonSetType)
 
 	for {
 		e, ok := <-watcher.ResultChan()
