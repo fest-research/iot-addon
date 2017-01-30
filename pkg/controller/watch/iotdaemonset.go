@@ -5,7 +5,10 @@ import (
 
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/kubernetes"
-	"k8s.io/apimachinery/pkg/apis/meta/v1"
+	client "k8s.io/client-go/kubernetes"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/pkg/api/v1"
+	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/pkg/api"
@@ -16,16 +19,19 @@ import (
 type IotDaemonSetWatcher struct {
 	dynamicClient *dynamic.Client
 	restClient    *rest.RESTClient
+	clientset     *client.Clientset
+	iotDomain     string
 }
 
-func NewIotDaemonSetWatcher(dynamicClient *dynamic.Client, restClient *rest.RESTClient) IotDaemonSetWatcher {
-	return IotDaemonSetWatcher{dynamicClient: dynamicClient, restClient: restClient}
+func NewIotDaemonSetWatcher(dynamicClient *dynamic.Client, restClient *rest.RESTClient, clientset *client.Clientset, iotDomain string) IotDaemonSetWatcher {
+	return IotDaemonSetWatcher{dynamicClient: dynamicClient, restClient: restClient, clientset: clientset, iotDomain: iotDomain}
 }
 
 // WatchIotDaemonSet watches for IotDaemonSet events and handles them.
 func (w IotDaemonSetWatcher) Watch() {
 	var watcher watch.Interface = nil
 	var err error = nil
+	var resourceName string = types.TprIotDaemonSet+ "." + w.iotDomain
 
 	ticker := time.NewTicker(time.Second * 4)
 	defer ticker.Stop()
@@ -33,12 +39,29 @@ func (w IotDaemonSetWatcher) Watch() {
 	for ok := true; ok; ok = (watcher == nil) {
 		select {
 		case <-ticker.C:
-			watcher, err = w.dynamicClient.Resource(&v1.APIResource{
+			watcher, err = w.dynamicClient.Resource(&metav1.APIResource{
 				Name:       types.IotDaemonSetType,
 				Namespaced: true,
 			}, api.NamespaceAll).Watch(&api.ListOptions{})
 			if err != nil {
 				log.Println(err.Error())
+				_, err = w.clientset.Extensions().ThirdPartyResources().Get(resourceName, metav1.GetOptions{})
+				if err != nil {
+					tpr := &v1beta1.ThirdPartyResource{
+						ObjectMeta: v1.ObjectMeta{
+							Name: resourceName,
+						},
+						Versions: []v1beta1.APIVersion{
+							{Name: types.APIVersion},
+						},
+						Description: "A specification of a IoT Daemon Set that runs on IoT devices",
+					}
+
+					_, err := w.clientset.Extensions().ThirdPartyResources().Create(tpr)
+					if err != nil {
+						log.Println(err.Error())
+					}
+				}
 			} else {
 				ticker.Stop()
 			}

@@ -5,7 +5,9 @@ import (
 
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/kubernetes"
+	client "k8s.io/client-go/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/pkg/api"
@@ -17,6 +19,8 @@ import (
 type IotDeviceWatcher struct {
 	dynamicClient *dynamic.Client
 	restClient    *rest.RESTClient
+	clientset     *client.Clientset
+	iotDomain     string
 }
 
 var iotDeviceResource = metav1.APIResource{
@@ -24,14 +28,15 @@ var iotDeviceResource = metav1.APIResource{
 	Namespaced: true,
 }
 
-func NewIotDeviceWatcher(dynamicClient *dynamic.Client, restClient *rest.RESTClient) IotDeviceWatcher {
-	return IotDeviceWatcher{dynamicClient: dynamicClient, restClient: restClient}
+func NewIotDeviceWatcher(dynamicClient *dynamic.Client, restClient *rest.RESTClient, clientset *client.Clientset, iotDomain string) IotDeviceWatcher {
+	return IotDeviceWatcher{dynamicClient: dynamicClient, restClient: restClient, clientset: clientset, iotDomain: iotDomain}
 }
 
 func (w IotDeviceWatcher) Watch() {
 
 	var watcher watch.Interface = nil
 	var err error = nil
+	var resourceName string = types.TprIotDevice+ "." + w.iotDomain
 	ticker := time.NewTicker(time.Second * 4)
 	defer ticker.Stop()
 
@@ -43,6 +48,23 @@ func (w IotDeviceWatcher) Watch() {
 				Watch(&api.ListOptions{})
 			if err != nil {
 				log.Println(err.Error())
+				_, err = w.clientset.Extensions().ThirdPartyResources().Get(resourceName, metav1.GetOptions{})
+				if err != nil {
+					tpr := &v1beta1.ThirdPartyResource{
+						ObjectMeta: v1.ObjectMeta{
+							Name: resourceName,
+						},
+						Versions: []v1beta1.APIVersion{
+							{Name: types.APIVersion},
+						},
+						Description: "A specification of a IoT device",
+					}
+
+					_, err := w.clientset.Extensions().ThirdPartyResources().Create(tpr)
+					if err != nil {
+						log.Println(err.Error())
+					}
+				}
 			} else {
 				ticker.Stop()
 			}

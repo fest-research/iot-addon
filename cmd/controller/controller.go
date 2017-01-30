@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"flag"
 
 	"time"
@@ -13,6 +14,7 @@ import (
 var (
 	apiserverArg  = pflag.String("apiserver", "", "apiserver adress in http://host:port format")
 	kubeconfigArg = pflag.String("kubeconfig", "", "absolute path to the kubeconfig file")
+	iotDomain =     pflag.String("domain", "fujitsu.com", "Domain name for IoT resources")
 )
 
 func main() {
@@ -20,15 +22,18 @@ func main() {
 	pflag.Parse()
 	flag.CommandLine.Parse(make([]string, 0))
 
-	config := kubernetes.NewClientConfig(*apiserverArg, *kubeconfigArg)
+	log.Printf("IoT domain name %s", *iotDomain)
+
+	config := kubernetes.NewClientConfig(*apiserverArg, *kubeconfigArg, *iotDomain)
 	dynamicClient := kubernetes.NewDynamicClient(config)
 	restClient := kubernetes.NewRESTClient(config)
+	clientset := kubernetes.NewClientset(config)
 
 	// Start IotDevices watch.
-	go watch.NewIotDeviceWatcher(dynamicClient, restClient).Watch()
+	go watch.NewIotDeviceWatcher(dynamicClient, restClient, clientset, *iotDomain).Watch()
 
 	// Wait a second and start IotDaemonSet watch.
 	time.Sleep(time.Second)
-	watch.NewIotDaemonSetWatcher(dynamicClient, restClient).Watch()
+	watch.NewIotDaemonSetWatcher(dynamicClient, restClient, clientset, *iotDomain).Watch()
 
 }

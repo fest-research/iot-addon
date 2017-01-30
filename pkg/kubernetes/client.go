@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"log"
 
+	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/api/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -11,10 +12,21 @@ import (
 	"k8s.io/client-go/pkg/api"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/kubernetes"
 )
 
 func NewDynamicClient(config *rest.Config) *dynamic.Client {
 	client, err := dynamic.NewClient(config)
+
+	if err != nil {
+		panic(err.Error())
+	}
+
+	return client
+}
+
+func NewClientset(config *rest.Config) *kubernetes.Clientset {
+	client, err := kubernetes.NewForConfig(config)
 
 	if err != nil {
 		panic(err.Error())
@@ -33,7 +45,7 @@ func NewRESTClient(config *rest.Config) *rest.RESTClient {
 	return client
 }
 
-func NewClientConfig(apiserver, kubeconfig string) *rest.Config {
+func NewClientConfig(apiserver, kubeconfig string, iotDomain string) *rest.Config {
 	log.Printf("Creating client config using \"%s\" apiserver and \"%s\" kubeconfig",
 		apiserver, kubeconfig)
 
@@ -44,8 +56,8 @@ func NewClientConfig(apiserver, kubeconfig string) *rest.Config {
 	}
 
 	groupVersion := schema.GroupVersion{
-		Group:   "fujitsu.com",
-		Version: "v1",
+		Group:   iotDomain,
+		Version: types.APIVersion,
 	}
 
 	config.GroupVersion = &groupVersion
