@@ -35,7 +35,7 @@ func CreateDaemonSetPod(ds types.IotDaemonSet, device types.IotDevice, restClien
 			Metadata: v1.ObjectMeta{
 				Name:      ds.Metadata.Name + "-" + string(common.NewUUID()), // TODO use template val
 				Namespace: ds.Metadata.Namespace,
-				Labels: labels,
+				Labels:    labels,
 			},
 			Spec: ds.Spec.Template.Spec,
 		}).Do().Error()
@@ -100,7 +100,7 @@ func UpdatePod(restClient *rest.RESTClient, pod types.IotPod, template v1.PodTem
 	pod.Spec = template.Spec
 
 	labels := map[string]string{
-		types.CreatedBy:     pod.Metadata.Labels[types.CreatedBy],
+		types.CreatedBy:      pod.Metadata.Labels[types.CreatedBy],
 		types.DeviceSelector: pod.Metadata.Labels[types.DeviceSelector],
 	}
 	common.MapCopy(labels, template.ObjectMeta.Labels)
@@ -110,7 +110,7 @@ func UpdatePod(restClient *rest.RESTClient, pod types.IotPod, template v1.PodTem
 	err := restClient.Put().
 		Namespace(pod.Metadata.Namespace).
 		Resource(types.IotPodType).
-	        Name(pod.Metadata.Name).
+		Name(pod.Metadata.Name).
 		Body(&pod).
 		Do().
 		Into(&newPod)

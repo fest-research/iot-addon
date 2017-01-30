@@ -1,6 +1,8 @@
 package kubernetes
 
 import (
+	"strconv"
+
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
@@ -8,7 +10,6 @@ import (
 	"k8s.io/client-go/pkg/api"
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/rest"
-	"strconv"
 )
 
 // GetAllDevices returns all IotDevices from selected namespace.
