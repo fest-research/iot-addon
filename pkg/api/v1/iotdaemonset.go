@@ -3,7 +3,6 @@ package v1
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
 )
 
@@ -14,7 +13,7 @@ const (
 
 type IotDaemonSet struct {
 	metav1.TypeMeta `json:",inline"`
-	Metadata        v1.ObjectMeta           `json:"metadata,omitempty"`
+	Metadata        metav1.ObjectMeta           `json:"metadata,omitempty"`
 	Spec            v1beta1.DaemonSetSpec   `json:"spec,omitempty"`
 	Status          v1beta1.DaemonSetStatus `json:"status,omitempty"`
 }
@@ -29,7 +28,7 @@ func (iotDaemonSet *IotDaemonSet) GetObjectKind() schema.ObjectKind {
 	return &iotDaemonSet.TypeMeta
 }
 
-func (iotDaemonSet *IotDaemonSet) GetObjectMeta() *v1.ObjectMeta {
+func (iotDaemonSet *IotDaemonSet) GetObjectMeta() *metav1.ObjectMeta {
 	return &iotDaemonSet.Metadata
 }
 

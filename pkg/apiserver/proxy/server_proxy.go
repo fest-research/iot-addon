@@ -2,24 +2,22 @@ package proxy
 
 import (
 	"github.com/emicklei/go-restful/log"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/pkg/api"
-	"k8s.io/client-go/pkg/api/v1"
 )
 
 type IServerProxy interface {
 	Create(*metav1.APIResource, string, *unstructured.Unstructured) (*unstructured.Unstructured, error)
-	Delete(*metav1.APIResource, string, string, *v1.DeleteOptions) error
-	Patch(*metav1.APIResource, string, string, api.PatchType, []byte) (*unstructured.Unstructured, error)
+	Delete(*metav1.APIResource, string, string, *metav1.DeleteOptions) error
+	Patch(*metav1.APIResource, string, string, types.PatchType, []byte) (*unstructured.Unstructured, error)
 	Update(*metav1.APIResource, string, *unstructured.Unstructured) (*unstructured.Unstructured, error)
 	Get(*metav1.APIResource, string, string) (*unstructured.Unstructured, error)
-	List(*metav1.APIResource, string, *v1.ListOptions) (runtime.Object, error)
-	Watch(*metav1.APIResource, string, *v1.ListOptions) (watch.Interface, error)
+	List(*metav1.APIResource, string, *metav1.ListOptions) (runtime.Object, error)
+	Watch(*metav1.APIResource, string, *metav1.ListOptions) (watch.Interface, error)
 }
 
 type ServerProxy struct {
@@ -46,7 +44,7 @@ func (this ServerProxy) Create(resource *metav1.APIResource, namespace string, o
 }
 
 func (this ServerProxy) Delete(resource *metav1.APIResource, namespace, name string,
-	deleteOptions *v1.DeleteOptions) error {
+	deleteOptions *metav1.DeleteOptions) error {
 	log.Printf("[Server proxy] DELETE resource: %s, namespaced: %t", resource.Name, resource.Namespaced)
 
 	return this.tprClient.Resource(resource, namespace).Delete(name, deleteOptions)
@@ -60,18 +58,18 @@ func (this ServerProxy) Update(resource *metav1.APIResource, namespace string,
 }
 
 func (this ServerProxy) Patch(resource *metav1.APIResource, namespace, name string,
-	pt api.PatchType, body []byte) (*unstructured.Unstructured, error) {
+	pt types.PatchType, body []byte) (*unstructured.Unstructured, error) {
 	log.Printf("[Server proxy] PATCH resource: %s, namespaced: %t", resource.Name, resource.Namespaced)
 	return this.tprClient.Resource(resource, namespace).Patch(name, pt, body)
 }
 
-func (this ServerProxy) List(resource *metav1.APIResource, namespace string, listOptions *v1.ListOptions) (
+func (this ServerProxy) List(resource *metav1.APIResource, namespace string, listOptions *metav1.ListOptions) (
 	runtime.Object, error) {
 	log.Printf("[Server proxy] LIST resource: %s, namespaced: %t", resource.Name, resource.Namespaced)
 	return this.tprClient.Resource(resource, namespace).List(listOptions)
 }
 
-func (this ServerProxy) Watch(resource *metav1.APIResource, namespace string, listOptions *v1.ListOptions) (
+func (this ServerProxy) Watch(resource *metav1.APIResource, namespace string, listOptions *metav1.ListOptions) (
 	watch.Interface, error) {
 	log.Printf("[Server proxy] WATCH resource: %s, namespaced: %t", resource.Name, resource.Namespaced)
 

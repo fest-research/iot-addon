@@ -2,18 +2,18 @@ package watch
 
 import (
 	"log"
+	"time"
 
 	"time"
 
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/kubernetes"
-	client "k8s.io/client-go/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/pkg/api/v1"
-	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
+	client "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api"
+	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
 	"k8s.io/client-go/rest"
 )
 
@@ -43,13 +43,13 @@ func (w IotDaemonSetWatcher) Watch() {
 			watcher, err = w.dynamicClient.Resource(&metav1.APIResource{
 				Name:       types.IotDaemonSetType,
 				Namespaced: true,
-			}, api.NamespaceAll).Watch(&api.ListOptions{})
+			}, api.NamespaceAll).Watch(&metav1.ListOptions{})
 			if err != nil {
 				log.Println(err.Error())
-				_, err = w.clientset.Extensions().ThirdPartyResources().Get(resourceName, metav1.GetOptions{})
+				_, err = w.clientset.ExtensionsV1beta1().ThirdPartyResources().Get(resourceName, metav1.GetOptions{})
 				if err != nil {
 					tpr := &v1beta1.ThirdPartyResource{
-						ObjectMeta: v1.ObjectMeta{
+						ObjectMeta: metav1.ObjectMeta{
 							Name: resourceName,
 						},
 						Versions: []v1beta1.APIVersion{
@@ -58,7 +58,7 @@ func (w IotDaemonSetWatcher) Watch() {
 						Description: "A specification of a IoT Daemon Set that runs on IoT devices",
 					}
 
-					_, err := w.clientset.Extensions().ThirdPartyResources().Create(tpr)
+					_, err := w.clientset.ExtensionsV1beta1().ThirdPartyResources().Create(tpr)
 					if err != nil {
 						log.Println(err.Error())
 					}
@@ -74,11 +74,7 @@ func (w IotDaemonSetWatcher) Watch() {
 	log.Printf("Watcher for %s created \n", types.IotDaemonSetType)
 
 	for {
-		e, ok := <-watcher.ResultChan()
-
-		if !ok {
-			panic("IotDaemonSet ended early?")
-		}
+		e := <-watcher.ResultChan()
 
 		ds, _ := e.Object.(*types.IotDaemonSet)
 

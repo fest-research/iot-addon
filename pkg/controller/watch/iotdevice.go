@@ -13,7 +13,6 @@ import (
 	"k8s.io/client-go/dynamic"
 	client "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api"
-	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
 	"k8s.io/client-go/rest"
 )
@@ -42,18 +41,18 @@ func (w IotDeviceWatcher) Watch() {
 	ticker := time.NewTicker(time.Second * 4)
 	defer ticker.Stop()
 
-	for ok := true; ok; ok = (watcher == nil) {
+	for ok := true; ok; ok = watcher == nil {
 		select {
 		case <-ticker.C:
 			watcher, err = w.dynamicClient.
 				Resource(&iotDeviceResource, api.NamespaceAll).
-				Watch(&api.ListOptions{})
+				Watch(&metav1.ListOptions{})
 			if err != nil {
 				log.Println(err.Error())
-				_, err = w.clientset.Extensions().ThirdPartyResources().Get(resourceName, metav1.GetOptions{})
+				_, err = w.clientset.ExtensionsV1beta1().ThirdPartyResources().Get(resourceName, metav1.GetOptions{})
 				if err != nil {
 					tpr := &v1beta1.ThirdPartyResource{
-						ObjectMeta: v1.ObjectMeta{
+						ObjectMeta: metav1.ObjectMeta{
 							Name: resourceName,
 						},
 						Versions: []v1beta1.APIVersion{
@@ -62,7 +61,7 @@ func (w IotDeviceWatcher) Watch() {
 						Description: "A specification of a IoT device",
 					}
 
-					_, err := w.clientset.Extensions().ThirdPartyResources().Create(tpr)
+					_, err := w.clientset.ExtensionsV1beta1().ThirdPartyResources().Create(tpr)
 					if err != nil {
 						log.Println(err.Error())
 					}
@@ -78,11 +77,7 @@ func (w IotDeviceWatcher) Watch() {
 	log.Printf("Watcher for %s created \n", types.IotDeviceType)
 
 	for {
-		e, ok := <-watcher.ResultChan()
-
-		if !ok {
-			panic("IotDevices ended early?")
-		}
+		e := <-watcher.ResultChan()
 
 		modificationMap := map[string]bool{}
 		iotDevice, _ := e.Object.(*types.IotDevice)
@@ -155,7 +150,7 @@ func (w IotDeviceWatcher) deletePod(pod types.IotPod) error {
 		Namespace(pod.Metadata.Namespace).
 		Resource(types.IotPodType).
 		Name(pod.Metadata.Name).
-		Body(&v1.DeleteOptions{}).
+		Body(&metav1.DeleteOptions{}).
 		Do().
 		Error()
 

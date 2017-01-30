@@ -13,9 +13,9 @@ const (
 
 type IotPod struct {
 	metav1.TypeMeta `json:",inline"`
-	Metadata        v1.ObjectMeta `json:"metadata,omitempty"`
-	Spec            v1.PodSpec    `json:"spec,omitempty"`
-	Status          v1.PodStatus  `json:"status,omitempty"`
+	Metadata        metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec            v1.PodSpec        `json:"spec,omitempty"`
+	Status          v1.PodStatus      `json:"status,omitempty"`
 }
 
 type IotPodList struct {
@@ -28,7 +28,7 @@ func (iotPod *IotPod) GetObjectKind() schema.ObjectKind {
 	return &iotPod.TypeMeta
 }
 
-func (iotPod *IotPod) GetObjectMeta() *v1.ObjectMeta {
+func (iotPod *IotPod) GetObjectMeta() *metav1.ObjectMeta {
 	return &iotPod.Metadata
 }
 

@@ -134,6 +134,7 @@ func (this podController) getTypeMeta(kind v1.ResourceKind) metav1.TypeMeta {
 func (this podController) setRequiredFields(pod *kubeapi.Pod) *kubeapi.Pod {
 	for i := range pod.Spec.Containers {
 		pod.Spec.Containers[i].ImagePullPolicy = kubeapi.PullAlways
+		pod.Spec.Containers[i].TerminationMessagePolicy = kubeapi.TerminationMessageReadFile
 		for j := range pod.Spec.Containers[i].Ports {
 			pod.Spec.Containers[i].Ports[j].Protocol = kubeapi.ProtocolTCP
 		}

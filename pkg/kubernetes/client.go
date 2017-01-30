@@ -3,16 +3,17 @@ package kubernetes
 import (
 	"log"
 
-	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/api/v1"
+	types "github.com/fest-research/iot-addon/pkg/api/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/kubernetes"
 )
 
 func NewDynamicClient(config *rest.Config) *dynamic.Client {
@@ -69,8 +70,8 @@ func NewClientConfig(apiserver, kubeconfig string, iotDomain string) *rest.Confi
 		func(scheme *runtime.Scheme) error {
 			scheme.AddKnownTypes(
 				groupVersion,
-				&api.ListOptions{},
-				&api.DeleteOptions{},
+				&metav1.ListOptions{},
+				&metav1.DeleteOptions{},
 				&v1.IotDevice{},
 				&v1.IotDeviceList{},
 				&v1.IotDaemonSet{},

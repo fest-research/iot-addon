@@ -8,9 +8,9 @@ import (
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/common"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/pkg/api/v1"
-	"k8s.io/client-go/pkg/fields"
 	"k8s.io/client-go/rest"
 )
 
@@ -29,7 +29,7 @@ func CreateDaemonSetPod(ds types.IotDaemonSet, device types.IotDevice, restClien
 				Kind:       types.IotPodKind,
 				APIVersion: ds.APIVersion,
 			},
-			Metadata: v1.ObjectMeta{
+			Metadata: metav1.ObjectMeta{
 				Name:      ds.Metadata.Name + "-" + string(common.NewUUID()), // TODO use template val
 				Namespace: ds.Metadata.Namespace,
 				Labels:    labels,

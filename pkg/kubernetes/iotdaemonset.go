@@ -5,7 +5,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/rest"
 )
 
@@ -53,7 +52,7 @@ func DaemonSetToPod(ds types.IotDaemonSet) types.IotPod {
 			Kind:       types.IotPodKind,
 			APIVersion: ds.APIVersion,
 		},
-		Metadata: v1.ObjectMeta{
+		Metadata: metav1.ObjectMeta{
 			Name:      ds.Metadata.Name,
 			Namespace: ds.Metadata.Namespace,
 			Labels: map[string]string{

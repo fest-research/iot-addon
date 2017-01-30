@@ -16,9 +16,9 @@ const (
 
 type IotDevice struct {
 	metav1.TypeMeta `json:",inline"`
-	Metadata        v1.ObjectMeta `json:"metadata"`
-	Spec            v1.NodeSpec   `json:"spec"`
-	Status          v1.NodeStatus `json:"status"`
+	Metadata        metav1.ObjectMeta `json:"metadata"`
+	Spec            v1.NodeSpec       `json:"spec"`
+	Status          v1.NodeStatus     `json:"status"`
 }
 
 type IotDeviceList struct {
@@ -31,7 +31,7 @@ func (iotDevice *IotDevice) GetObjectKind() schema.ObjectKind {
 	return &iotDevice.TypeMeta
 }
 
-func (iotDevice *IotDevice) GetObjectMeta() *v1.ObjectMeta {
+func (iotDevice *IotDevice) GetObjectMeta() *metav1.ObjectMeta {
 	return &iotDevice.Metadata
 }
 
@@ -73,8 +73,8 @@ func (this *fakeContainerImage) toContainerImage() v1.ContainerImage {
 
 type fakeIotDevice struct {
 	metav1.TypeMeta `json:",inline"`
-	Metadata        v1.ObjectMeta `json:"metadata"`
-	Spec            v1.NodeSpec   `json:"spec"`
+	Metadata        metav1.ObjectMeta `json:"metadata"`
+	Spec            v1.NodeSpec       `json:"spec"`
 	Status          struct {
 		Capacity        v1.ResourceList        `json:"capacity,omitempty"`
 		Allocatable     v1.ResourceList        `json:"allocatable,omitempty"`

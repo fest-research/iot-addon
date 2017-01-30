@@ -11,8 +11,8 @@ import (
 	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
 
 	apimachinery "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/json"
-	"k8s.io/client-go/pkg/api"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
 )
 
@@ -152,7 +152,7 @@ func (this NodeService) listNodes(req *restful.Request, resp *restful.Response) 
 	// TODO: refactor this later, set based on tenant
 	namespace := "default"
 
-	obj, err := this.proxy.List(iotDeviceResource, namespace, &apiv1.ListOptions{})
+	obj, err := this.proxy.List(iotDeviceResource, namespace, &apimachinery.ListOptions{})
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
@@ -179,7 +179,7 @@ func (this NodeService) updateStatus(req *restful.Request, resp *restful.Respons
 	}
 
 	// Update the IoTDevice
-	unstructuredIotDevice, err := this.proxy.Patch(iotDeviceResource, namespace, name, api.MergePatchType, body)
+	unstructuredIotDevice, err := this.proxy.Patch(iotDeviceResource, namespace, name, types.MergePatchType, body)
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
@@ -200,7 +200,7 @@ func (this NodeService) watchNodes(req *restful.Request, resp *restful.Response)
 	// TODO: refactor this later, set based on tenant
 	namespace := "default"
 
-	watcher, err := this.proxy.Watch(iotDeviceResource, namespace, &apiv1.ListOptions{})
+	watcher, err := this.proxy.Watch(iotDeviceResource, namespace, &apimachinery.ListOptions{})
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return

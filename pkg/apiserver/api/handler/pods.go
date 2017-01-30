@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -10,9 +11,6 @@ import (
 	"github.com/fest-research/iot-addon/pkg/apiserver/controller"
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
 	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
-
-	"fmt"
-
 	apimachinery "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
@@ -149,7 +147,7 @@ func (this PodService) listPods(req *restful.Request, resp *restful.Response) {
 
 	}
 
-	obj, err := this.proxy.List(iotPodResource, namespace, &apiv1.ListOptions{
+	obj, err := this.proxy.List(iotPodResource, namespace, &apimachinery.ListOptions{
 		LabelSelector: labelSelector.String(),
 	})
 	if err != nil {
@@ -179,7 +177,7 @@ func (this PodService) watchPods(req *restful.Request, resp *restful.Response) {
 		handleInternalServerError(resp, err)
 	}
 
-	watcher, err := this.proxy.Watch(iotPodResource, namespace, &apiv1.ListOptions{
+	watcher, err := this.proxy.Watch(iotPodResource, namespace, &apimachinery.ListOptions{
 		Watch:         true,
 		LabelSelector: labelSelector.String(),
 	})
