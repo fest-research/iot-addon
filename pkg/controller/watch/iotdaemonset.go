@@ -3,6 +3,8 @@ package watch
 import (
 	"log"
 
+	"time"
+
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/kubernetes"
 	client "k8s.io/client-go/kubernetes"
@@ -13,7 +15,6 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/pkg/api"
 	"k8s.io/client-go/rest"
-	"time"
 )
 
 type IotDaemonSetWatcher struct {
