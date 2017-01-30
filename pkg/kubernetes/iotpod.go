@@ -10,20 +10,15 @@ import (
 	"k8s.io/client-go/pkg/api/v1"
 	"k8s.io/client-go/pkg/fields"
 	"k8s.io/client-go/rest"
-	"fmt"
 )
 
 // CreateDaemonSetPod created ds pod on specific device
 func CreateDaemonSetPod(ds types.IotDaemonSet, device types.IotDevice, restClient *rest.RESTClient) error {
-
-	fmt.Println(device)
 	labels := map[string]string{
 		types.CreatedBy:      types.IotDaemonSetType + "." + ds.Metadata.Name,
 		types.DeviceSelector: device.Metadata.Name,
 	}
-	fmt.Println(labels)
 	common.MapCopy(labels, ds.Spec.Template.ObjectMeta.Labels)
-	fmt.Println(labels)
 	return restClient.Post().
 		Namespace(ds.Metadata.Namespace).
 		Resource(types.IotPodType).

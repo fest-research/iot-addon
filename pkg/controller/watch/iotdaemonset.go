@@ -36,7 +36,7 @@ func (w IotDaemonSetWatcher) Watch() {
 	ticker := time.NewTicker(time.Second * 4)
 	defer ticker.Stop()
 
-	for ok := true; ok; ok = (watcher == nil) {
+	for ok := true; ok; ok = watcher == nil {
 		select {
 		case <-ticker.C:
 			watcher, err = w.dynamicClient.Resource(&metav1.APIResource{

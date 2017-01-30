@@ -13,11 +13,12 @@ import (
 )
 
 var (
-	ctrl = NewNodeController()
+	iotDomain = "test-domain"
+	ctrl = NewNodeController(iotDomain)
 
 	iotTypeMeta = metav1.TypeMeta{
 		Kind:       string(v1.IotDeviceKind),
-		APIVersion: v1.IotAPIVersion,
+		APIVersion: iotDomain,
 	}
 
 	typeMeta = metav1.TypeMeta{

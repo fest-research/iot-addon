@@ -2,18 +2,18 @@ package watch
 
 import (
 	"log"
+	"time"
 
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/kubernetes"
-	client "k8s.io/client-go/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
+	client "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api"
 	"k8s.io/client-go/pkg/api/v1"
+	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
 	"k8s.io/client-go/rest"
-	"time"
 )
 
 type IotDeviceWatcher struct {
@@ -36,7 +36,7 @@ func (w IotDeviceWatcher) Watch() {
 
 	var watcher watch.Interface = nil
 	var err error = nil
-	var resourceName string = types.TprIotDevice+ "." + w.iotDomain
+	var resourceName string = types.TprIotDevice + "." + w.iotDomain
 	ticker := time.NewTicker(time.Second * 4)
 	defer ticker.Stop()
 

@@ -10,12 +10,13 @@ type IServiceFactory interface {
 }
 
 type ServiceFactory struct {
-	proxy    *proxy.Proxy
-	services []IService
+	proxy     *proxy.Proxy
+	services  []IService
+	iotDomain string
 }
 
 // NewServiceFactory creates a factory that registers all all supported services.
-func NewServiceFactory(proxy *proxy.Proxy) *ServiceFactory {
+func NewServiceFactory(proxy *proxy.Proxy, iotDomain string) *ServiceFactory {
 	factory := &ServiceFactory{proxy: proxy, services: make([]IService, 0)}
 	factory.init()
 
@@ -31,10 +32,10 @@ func (this *ServiceFactory) init() {
 	this.registerService(NewVersionService(this.proxy.RawProxy))
 
 	// Node service
-	this.registerService(NewNodeService(this.proxy.ServerProxy, controller.NewNodeController()))
+	this.registerService(NewNodeService(this.proxy.ServerProxy, controller.NewNodeController(this.iotDomain)))
 
 	// Pod service
-	this.registerService(NewPodService(this.proxy.ServerProxy, controller.NewPodController()))
+	this.registerService(NewPodService(this.proxy.ServerProxy, controller.NewPodController(this.iotDomain)))
 
 	// Event service
 	this.registerService(NewEventService(this.proxy.RawProxy))

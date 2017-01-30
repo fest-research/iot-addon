@@ -22,7 +22,9 @@ type IPodController interface {
 	ToBytes(*unstructured.Unstructured) ([]byte, error)
 }
 
-type podController struct{}
+type podController struct{
+	iotDomain string
+}
 
 // TransformWatchEvent converts an ADD/UPDATE/DELETE event for an IotPod to
 // an ADD/UPDATE/DELETE event for a k8s Pod
@@ -117,7 +119,7 @@ func (this podController) ToBytes(unstructured *unstructured.Unstructured) ([]by
 
 func (this podController) getIotTypeMeta() metav1.TypeMeta {
 	return metav1.TypeMeta{
-		APIVersion: v1.IotAPIVersion,
+		APIVersion: this.iotDomain,
 		Kind:       v1.IotPodKind,
 	}
 }
@@ -146,6 +148,6 @@ func (this podController) setRequiredFields(pod *kubeapi.Pod) *kubeapi.Pod {
 	return pod
 }
 
-func NewPodController() IPodController {
-	return &podController{}
+func NewPodController(iotDomain string) IPodController {
+	return &podController{iotDomain: iotDomain}
 }

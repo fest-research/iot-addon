@@ -21,7 +21,9 @@ type INodeController interface {
 	ToBytes(*unstructured.Unstructured) ([]byte, error)
 }
 
-type nodeController struct{}
+type nodeController struct{
+	iotDomain string
+}
 
 // TransformWatchEvent converts an ADD/UPDATE/DELETE event for an IotDevice to
 // an ADD/UPDATE/DELETE event for a k8s Node
@@ -120,7 +122,7 @@ func (this nodeController) ToBytes(unstructured *unstructured.Unstructured) ([]b
 
 func (this nodeController) getIotTypeMeta() metav1.TypeMeta {
 	return metav1.TypeMeta{
-		APIVersion: v1.IotAPIVersion,
+		APIVersion: this.iotDomain,
 		Kind:       v1.IotDeviceKind,
 	}
 }
@@ -132,6 +134,6 @@ func (this nodeController) getTypeMeta(kind v1.ResourceKind) metav1.TypeMeta {
 	}
 }
 
-func NewNodeController() INodeController {
-	return &nodeController{}
+func NewNodeController(iotDomain string) INodeController {
+	return &nodeController{iotDomain: iotDomain}
 }
