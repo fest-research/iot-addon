@@ -22,15 +22,19 @@ func GetAllDevices(dynamicClient *dynamic.Client, namespace string) ([]types.Iot
 }
 
 // GetAllDevices returns IotDevice with selected name from selected namespace.
-func GetDevice(restClient *rest.RESTClient, name, namespace string) types.IotDevice {
+func GetDevice(restClient *rest.RESTClient, name, namespace string) (types.IotDevice, error) {
 	var device types.IotDevice
-	restClient.Get().
+	err := restClient.Get().
 		Resource(types.IotDeviceType).
 		Namespace(namespace).
 		Name(name).
 		Do().
 		Into(&device)
-	return device
+
+	if err != nil {
+		return types.IotDevice{}, err
+	}
+	return device, nil
 }
 
 // TODO ?

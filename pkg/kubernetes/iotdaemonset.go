@@ -17,9 +17,14 @@ func GetDaemonSetDevices(ds types.IotDaemonSet, dynamicClient *dynamic.Client,
 	if deviceSelector == types.DevicesAll {
 		return GetAllDevices(dynamicClient, ds.Metadata.Namespace)
 	} else {
-		return []types.IotDevice{
-			GetDevice(restClient, deviceSelector, ds.Metadata.Namespace),
-		}, nil
+
+		result := []types.IotDevice{}
+		device, err := GetDevice(restClient, deviceSelector, ds.Metadata.Namespace)
+		if err != nil {
+			return result, nil
+		}
+		result = append(result, device)
+		return result, nil
 	}
 }
 
