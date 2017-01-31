@@ -119,7 +119,7 @@ func (this podController) ToBytes(unstructured *unstructured.Unstructured) ([]by
 
 func (this podController) getIotTypeMeta() metav1.TypeMeta {
 	return metav1.TypeMeta{
-		APIVersion: this.iotDomain,
+		APIVersion: this.iotDomain + "/" + v1.APIVersion,
 		Kind:       v1.IotPodKind,
 	}
 }

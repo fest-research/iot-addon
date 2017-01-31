@@ -17,7 +17,7 @@ type ServiceFactory struct {
 
 // NewServiceFactory creates a factory that registers all all supported services.
 func NewServiceFactory(proxy *proxy.Proxy, iotDomain string) *ServiceFactory {
-	factory := &ServiceFactory{proxy: proxy, services: make([]IService, 0)}
+	factory := &ServiceFactory{proxy: proxy, services: make([]IService, 0), iotDomain: iotDomain}
 	factory.init()
 
 	return factory

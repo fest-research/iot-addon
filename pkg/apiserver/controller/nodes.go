@@ -122,7 +122,7 @@ func (this nodeController) ToBytes(unstructured *unstructured.Unstructured) ([]b
 
 func (this nodeController) getIotTypeMeta() metav1.TypeMeta {
 	return metav1.TypeMeta{
-		APIVersion: this.iotDomain,
+		APIVersion: this.iotDomain + "/" + v1.APIVersion,
 		Kind:       v1.IotDeviceKind,
 	}
 }
