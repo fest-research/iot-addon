@@ -32,14 +32,8 @@ func main() {
 	pflag.Parse()
 
 	log.Printf("Using HTTP port: %d", *argPort)
-	if *argApiserverHost == "" {
-
-		log.Fatal("Parameter 'apiserver' not defined. Please define kubernetes apiserver address.")
-	}
-
-	if *argKubeconfig == "" {
-		log.Fatal("Parameter 'kubeconfig' not defined." +
-			" Please provide a 'kubeconfig' file to access the kubernetes apiserver.")
+	if *argKubeconfig == "" && *argApiserverHost == "" {
+		log.Println("Kubeconfig and apiserver arguments not provided. Falling back to inClusterConfig.")
 	}
 
 	// Get config object
@@ -52,7 +46,7 @@ func main() {
 	installer := api.APIInstaller{Root: rootPath, Version: v1.APIVersion}
 
 	// Create api proxy TODO: poll server and check if address is correct
-	serverProxy := proxy.NewProxy(tprClient, *argApiserverHost)
+	serverProxy := proxy.NewProxy(tprClient, config.Host)
 
 	// Create service factory
 	serviceFactory := handler.NewServiceFactory(serverProxy, *iotDomain)
