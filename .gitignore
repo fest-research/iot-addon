@@ -25,4 +25,6 @@ _testmain.go
 
 # Intellij
 .idea
-*.iml
+
+# Build binaries
+build/*
