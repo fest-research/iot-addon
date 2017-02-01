@@ -18,13 +18,10 @@ var (
 )
 
 func main() {
-	// Set logging output to standard console out.
-	log.SetOutput(os.Stdout)
-
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
-	flag.CommandLine.Parse(make([]string, 0))
 
+	log.SetOutput(os.Stdout)
 	log.Printf("IoT domain name %s", *iotDomain)
 
 	config := kubernetes.NewClientConfig(*apiserverArg, *kubeconfigArg, *iotDomain)
