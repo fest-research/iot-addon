@@ -19,9 +19,8 @@ import (
 var (
 	argApiserverHost = pflag.String("apiserver", "", "Kubernetes api server address")
 	argPort          = pflag.Int("port", 8083, "Port to listen on")
-	argKubeconfig    = pflag.String("kubeconfig", "./assets/default-kubeconfig.yaml",
-		"Absolute path to the kubeconfig file")
-	iotDomain = pflag.String("domain", "fujitsu.com", "Domain name for IoT resources")
+	argKubeconfig    = pflag.String("kubeconfig", "", "Absolute path to the kubeconfig file")
+	iotDomain        = pflag.String("domain", "fujitsu.com", "Domain name for IoT resources")
 )
 
 const (
