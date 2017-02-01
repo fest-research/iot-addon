@@ -20,12 +20,10 @@ var (
 	argApiserverHost = pflag.String("apiserver", "", "Kubernetes api server address")
 	argPort          = pflag.Int("port", 8083, "Port to listen on")
 	argKubeconfig    = pflag.String("kubeconfig", "", "Absolute path to the kubeconfig file")
-	iotDomain        = pflag.String("domain", "fujitsu.com", "Domain name for IoT resources")
+	iotDomain        = pflag.String("domain", "fujitsu.com", "custom domain name")
 )
 
-const (
-	rootPath = "/api/" + v1.APIVersion
-)
+const rootPath = "/api/" + v1.APIVersion
 
 func main() {
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
