@@ -26,12 +26,17 @@ var iotPodResource = metav1.APIResource{
 	Namespaced: true,
 }
 
-func NewIotPodWatcher(dynamicClient *dynamic.Client, restClient *rest.RESTClient, clientset *client.Clientset, iotDomain string) IotPodWatcher {
-	return IotPodWatcher{dynamicClient: dynamicClient, restClient: restClient, clientset: clientset, iotDomain: iotDomain}
+func NewIotPodWatcher(dynamicClient *dynamic.Client, restClient *rest.RESTClient, clientset *client.Clientset,
+	iotDomain string) IotPodWatcher {
+	return IotPodWatcher{
+		dynamicClient: dynamicClient,
+		restClient:    restClient,
+		clientset:     clientset,
+		iotDomain:     iotDomain,
+	}
 }
 
 func (w IotPodWatcher) Watch() {
-
 	var watcher watch.Interface = nil
 	var err error = nil
 	var resourceName string = types.TprIotPod + "." + w.iotDomain
@@ -46,7 +51,9 @@ func (w IotPodWatcher) Watch() {
 				Watch(&metav1.ListOptions{})
 			if err != nil {
 				log.Println(err.Error())
-				_, err = w.clientset.ExtensionsV1beta1().ThirdPartyResources().Get(resourceName, metav1.GetOptions{})
+				_, err = w.clientset.ExtensionsV1beta1().ThirdPartyResources().
+					Get(resourceName, metav1.GetOptions{})
+
 				if err != nil {
 					tpr := &v1beta1.ThirdPartyResource{
 						ObjectMeta: metav1.ObjectMeta{
@@ -75,7 +82,6 @@ func (w IotPodWatcher) Watch() {
 
 	for {
 		e := <-watcher.ResultChan()
-
 		iotPod, _ := e.Object.(*types.IotPod)
 
 		if e.Type == watch.Deleted {
