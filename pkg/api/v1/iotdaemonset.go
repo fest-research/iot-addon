@@ -13,7 +13,7 @@ const (
 
 type IotDaemonSet struct {
 	metav1.TypeMeta `json:",inline"`
-	Metadata        metav1.ObjectMeta           `json:"metadata,omitempty"`
+	Metadata        metav1.ObjectMeta       `json:"metadata,omitempty"`
 	Spec            v1beta1.DaemonSetSpec   `json:"spec,omitempty"`
 	Status          v1beta1.DaemonSetStatus `json:"status,omitempty"`
 }

@@ -20,7 +20,7 @@ var (
 	argPort          = pflag.Int("port", 8083, "Port to listen on")
 	argKubeconfig    = pflag.String("kubeconfig", "./assets/default-kubeconfig.yaml",
 		"Absolute path to the kubeconfig file")
-	iotDomain =     pflag.String("domain", "fujitsu.com", "Domain name for IoT resources")
+	iotDomain = pflag.String("domain", "fujitsu.com", "Domain name for IoT resources")
 )
 
 const (
@@ -37,9 +37,9 @@ func main() {
 	}
 
 	// Get config object
+	config := kube.NewClientConfig(*argApiserverHost, *argKubeconfig, *iotDomain)
 
 	// Create a client for the kubernetes apis
-	config := kube.NewClientConfig(*argApiserverHost, *argKubeconfig, *iotDomain)
 	tprClient := kube.NewDynamicClient(config)
 
 	// Create api installer

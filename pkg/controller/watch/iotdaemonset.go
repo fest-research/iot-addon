@@ -30,7 +30,7 @@ func NewIotDaemonSetWatcher(dynamicClient *dynamic.Client, restClient *rest.REST
 func (w IotDaemonSetWatcher) Watch() {
 	var watcher watch.Interface = nil
 	var err error = nil
-	var resourceName string = types.TprIotDaemonSet+ "." + w.iotDomain
+	var resourceName string = types.TprIotDaemonSet + "." + w.iotDomain
 
 	ticker := time.NewTicker(time.Second * 4)
 	defer ticker.Stop()

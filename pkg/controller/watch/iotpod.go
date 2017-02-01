@@ -34,7 +34,7 @@ func (w IotPodWatcher) Watch() {
 
 	var watcher watch.Interface = nil
 	var err error = nil
-	var resourceName string = types.TprIotPod+ "." + w.iotDomain
+	var resourceName string = types.TprIotPod + "." + w.iotDomain
 	ticker := time.NewTicker(time.Second * 4)
 	defer ticker.Stop()
 

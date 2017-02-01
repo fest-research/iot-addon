@@ -1,8 +1,8 @@
 package main
 
 import (
-	"log"
 	"flag"
+	"log"
 
 	"time"
 
@@ -14,7 +14,7 @@ import (
 var (
 	apiserverArg  = pflag.String("apiserver", "", "apiserver adress in http://host:port format")
 	kubeconfigArg = pflag.String("kubeconfig", "", "absolute path to the kubeconfig file")
-	iotDomain =     pflag.String("domain", "fujitsu.com", "Domain name for IoT resources")
+	iotDomain     = pflag.String("domain", "fujitsu.com", "Domain name for IoT resources")
 )
 
 func main() {

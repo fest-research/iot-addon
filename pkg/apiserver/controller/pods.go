@@ -22,7 +22,7 @@ type IPodController interface {
 	ToBytes(*unstructured.Unstructured) ([]byte, error)
 }
 
-type podController struct{
+type podController struct {
 	iotDomain string
 }
 

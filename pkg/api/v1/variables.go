@@ -8,14 +8,14 @@ const (
 	DevicesAll     = "all"
 	Unschedulable  = "unschedulable"
 
-	APIVersion    = "v1"
+	APIVersion = "v1"
 
 	NodeKind     ResourceKind = "Node"
 	NodeListKind              = "NodeList"
 	PodKind                   = "Pod"
 	PodListKind               = "PodList"
 
-	TprIotDevice                 = "iot-device"
-	TprIotDaemonSet              = "iot-daemon-set"
-	TprIotPod                    = "iot-pod"
+	TprIotDevice    = "iot-device"
+	TprIotDaemonSet = "iot-daemon-set"
+	TprIotPod       = "iot-pod"
 )

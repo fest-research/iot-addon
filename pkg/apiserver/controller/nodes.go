@@ -21,7 +21,7 @@ type INodeController interface {
 	ToBytes(*unstructured.Unstructured) ([]byte, error)
 }
 
-type nodeController struct{
+type nodeController struct {
 	iotDomain string
 }
 
