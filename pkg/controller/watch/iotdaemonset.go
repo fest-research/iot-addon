@@ -22,8 +22,14 @@ type IotDaemonSetWatcher struct {
 	iotDomain     string
 }
 
-func NewIotDaemonSetWatcher(dynamicClient *dynamic.Client, restClient *rest.RESTClient, clientset *client.Clientset, iotDomain string) IotDaemonSetWatcher {
-	return IotDaemonSetWatcher{dynamicClient: dynamicClient, restClient: restClient, clientset: clientset, iotDomain: iotDomain}
+func NewIotDaemonSetWatcher(dynamicClient *dynamic.Client, restClient *rest.RESTClient, clientset *client.Clientset,
+	iotDomain string) IotDaemonSetWatcher {
+	return IotDaemonSetWatcher{
+		dynamicClient: dynamicClient,
+		restClient:    restClient,
+		clientset:     clientset,
+		iotDomain:     iotDomain,
+	}
 }
 
 // WatchIotDaemonSet watches for IotDaemonSet events and handles them.

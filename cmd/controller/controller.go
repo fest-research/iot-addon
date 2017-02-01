@@ -32,7 +32,8 @@ func main() {
 	// Start IotDevices watch.
 	go watch.NewIotDeviceWatcher(dynamicClient, restClient, clientset, *iotDomain).Watch()
 
-	// Start IotPods watch.
+	// Wait a second and start IotPods watch.
+	time.Sleep(time.Second)
 	go watch.NewIotPodWatcher(dynamicClient, restClient, clientset, *iotDomain).Watch()
 
 	// Wait a second and start IotDaemonSet watch.

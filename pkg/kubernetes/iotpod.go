@@ -14,11 +14,11 @@ import (
 
 // CreateDaemonSetPod created ds pod on specific device
 func CreateDaemonSetPod(ds types.IotDaemonSet, device types.IotDevice, restClient *rest.RESTClient) error {
-	labels := map[string]string{
+	labelsMap := map[string]string{
 		types.CreatedBy:      types.IotDaemonSetType + "." + ds.Metadata.Name,
 		types.DeviceSelector: device.Metadata.Name,
 	}
-	common.MapCopy(labels, ds.Spec.Template.ObjectMeta.Labels)
+	common.MapCopy(labelsMap, ds.Spec.Template.ObjectMeta.Labels)
 	return restClient.Post().
 		Namespace(ds.Metadata.Namespace).
 		Resource(types.IotPodType).
@@ -28,9 +28,9 @@ func CreateDaemonSetPod(ds types.IotDaemonSet, device types.IotDevice, restClien
 				APIVersion: ds.APIVersion,
 			},
 			Metadata: metav1.ObjectMeta{
-				Name:      ds.Metadata.Name + "-" + string(common.NewUUID()), // TODO use template val
+				Name:      ds.Metadata.Name + "-" + string(common.NewUUID()),
 				Namespace: ds.Metadata.Namespace,
-				Labels:    labels,
+				Labels:    labelsMap,
 			},
 			Spec: ds.Spec.Template.Spec,
 		}).Do().Error()
@@ -88,19 +88,17 @@ func DeletePod(restClient *rest.RESTClient, pod types.IotPod) {
 	restClient.Delete().Resource(types.IotPodType).Namespace(pod.Metadata.Namespace).Name(pod.Metadata.Name).Do()
 }
 
-// TODO Update name, namespace and labels?
-// TODO Save updated pod.
 func UpdatePod(restClient *rest.RESTClient, pod types.IotPod, template v1.PodTemplateSpec) {
 	newPod := types.IotPod{}
 	pod.Spec = template.Spec
 
-	labels := map[string]string{
+	labelsMap := map[string]string{
 		types.CreatedBy:      pod.Metadata.Labels[types.CreatedBy],
 		types.DeviceSelector: pod.Metadata.Labels[types.DeviceSelector],
 	}
-	common.MapCopy(labels, template.ObjectMeta.Labels)
+	common.MapCopy(labelsMap, template.ObjectMeta.Labels)
 
-	pod.Metadata.Labels = labels
+	pod.Metadata.Labels = labelsMap
 
 	err := restClient.Put().
 		Namespace(pod.Metadata.Namespace).

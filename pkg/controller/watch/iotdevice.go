@@ -27,8 +27,14 @@ var iotDeviceResource = metav1.APIResource{
 	Namespaced: true,
 }
 
-func NewIotDeviceWatcher(dynamicClient *dynamic.Client, restClient *rest.RESTClient, clientset *client.Clientset, iotDomain string) IotDeviceWatcher {
-	return IotDeviceWatcher{dynamicClient: dynamicClient, restClient: restClient, clientset: clientset, iotDomain: iotDomain}
+func NewIotDeviceWatcher(dynamicClient *dynamic.Client, restClient *rest.RESTClient, clientset *client.Clientset,
+	iotDomain string) IotDeviceWatcher {
+	return IotDeviceWatcher{
+		dynamicClient: dynamicClient,
+		restClient:    restClient,
+		clientset:     clientset,
+		iotDomain:     iotDomain,
+	}
 }
 
 func (w IotDeviceWatcher) Watch() {
@@ -47,7 +53,10 @@ func (w IotDeviceWatcher) Watch() {
 				Watch(&metav1.ListOptions{})
 			if err != nil {
 				log.Println(err.Error())
-				_, err = w.clientset.ExtensionsV1beta1().ThirdPartyResources().Get(resourceName, metav1.GetOptions{})
+
+				_, err = w.clientset.ExtensionsV1beta1().ThirdPartyResources().
+					Get(resourceName, metav1.GetOptions{})
+
 				if err != nil {
 					tpr := &v1beta1.ThirdPartyResource{
 						ObjectMeta: metav1.ObjectMeta{
