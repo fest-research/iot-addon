@@ -9,8 +9,8 @@ import (
 	"github.com/fest-research/iot-addon/pkg/apiserver/controller"
 	"github.com/fest-research/iot-addon/pkg/apiserver/proxy"
 	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
-
 	apimachinery "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/json"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
@@ -66,9 +66,18 @@ func (this NodeService) Register(ws *restful.WebService) {
 			Writes(nil),
 	)
 
-	// Update status
+	// Update status (PATCH) - newest k8s versions
 	ws.Route(
 		ws.Method("PATCH").
+			Path("/nodes/{node}/status").
+			To(this.updateStatus).
+			Returns(http.StatusOK, "OK", nil).
+			Writes(nil),
+	)
+
+	// Update status (PUT) - older k8s versions < 1.6.0
+	ws.Route(
+		ws.Method("PUT").
 			Path("/nodes/{node}/status").
 			To(this.updateStatus).
 			Returns(http.StatusOK, "OK", nil).
@@ -170,6 +179,7 @@ func (this NodeService) updateStatus(req *restful.Request, resp *restful.Respons
 	// TODO: refactor this later, set based on tenant
 	namespace := "default"
 	name := req.PathParameter("node")
+	unstructuredIotDevice := &unstructured.Unstructured{}
 
 	// Read post request
 	body, err := ioutil.ReadAll(req.Request.Body)
@@ -178,14 +188,29 @@ func (this NodeService) updateStatus(req *restful.Request, resp *restful.Respons
 		return
 	}
 
-	// Update the IoTDevice
-	unstructuredIotDevice, err := this.proxy.Patch(iotDeviceResource, namespace, name, types.MergePatchType, body)
+	// Unmarshal request to a node object
+	node := &apiv1.Node{}
+	err = json.Unmarshal(body, node)
 	if err != nil {
 		handleInternalServerError(resp, err)
 		return
 	}
 
-	// Transform response back to unstructured pod
+	iotDevice := this.nodeController.ToIotDevice(node)
+	marshalledIotDevice, err := json.Marshal(iotDevice)
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
+
+	// Update the IoTDevice
+	unstructuredIotDevice, err = this.proxy.Patch(iotDeviceResource, namespace, name, types.MergePatchType, marshalledIotDevice)
+	if err != nil {
+		handleInternalServerError(resp, err)
+		return
+	}
+
+	// Transform response back to unstructured node
 	response, err := this.nodeController.ToBytes(unstructuredIotDevice)
 	if err != nil {
 		handleInternalServerError(resp, err)

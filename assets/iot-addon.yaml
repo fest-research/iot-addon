@@ -52,3 +52,19 @@ spec:
           # No runtime arguments needed for in-cluster configuration.
           # Otherwise, it's a good place to put them.
           # - --apiserver=http://10.132.0.2:8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: iot-apiserver
+  name: iot-apiserver
+  namespace: kube-system
+spec:
+  ports:
+  - port: 8083
+    protocol: TCP
+    targetPort: 8083
+  selector:
+    app: iot-apiserver
+  type: NodePort
