@@ -19,8 +19,33 @@ spec:
       - name: iot-controller
         image: fest/iot-controller
         imagePullPolicy: Always
+        args:
+          # No runtime arguments needed for in-cluster configuration.
+          # Otherwise, it's a good place to put them.
+---
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  labels:
+    app: iot-apiserver
+  name: iot-apiserver
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iot-apiserver
+  template:
+    metadata:
+      labels:
+        app: iot-apiserver
+    spec:
+      containers:
+      - name: iot-apiserver
+        image: fest/iot-apiserver
+        imagePullPolicy: Always
         ports:
-        - containerPort: 9090
+        - containerPort: 8083
           protocol: TCP
         args:
           # No runtime arguments needed for in-cluster configuration.
