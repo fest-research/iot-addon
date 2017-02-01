@@ -59,7 +59,7 @@ func (w IotDaemonSetWatcher) Watch() {
 						Versions: []v1beta1.APIVersion{
 							{Name: types.APIVersion},
 						},
-						Description: "A specification of a IoT Daemon Set that runs on IoT devices",
+						Description: "A specification of a IoT Daemon Set",
 					}
 
 					_, err := w.clientset.ExtensionsV1beta1().ThirdPartyResources().Create(tpr)

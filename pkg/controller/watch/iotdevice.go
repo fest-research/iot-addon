@@ -65,7 +65,7 @@ func (w IotDeviceWatcher) Watch() {
 						Versions: []v1beta1.APIVersion{
 							{Name: types.APIVersion},
 						},
-						Description: "A specification of a IoT device",
+						Description: "A specification of a IoT Device",
 					}
 
 					_, err := w.clientset.ExtensionsV1beta1().ThirdPartyResources().Create(tpr)
