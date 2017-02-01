@@ -1,0 +1,27 @@
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  labels:
+    app: iot-controller
+  name: iot-controller
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iot-controller
+  template:
+    metadata:
+      labels:
+        app: iot-controller
+    spec:
+      containers:
+      - name: iot-controller
+        image: fest/iot-controller
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9090
+          protocol: TCP
+        args:
+          # No runtime arguments needed for in-cluster configuration.
+          # Otherwise, it's a good place to put them.
