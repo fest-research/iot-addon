@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"log"
-
+	"os"
 	"time"
 
 	"github.com/fest-research/iot-addon/pkg/controller/watch"
@@ -22,6 +22,7 @@ func main() {
 	pflag.Parse()
 	flag.CommandLine.Parse(make([]string, 0))
 
+	log.SetOutput(os.Stdout)
 	log.Printf("IoT domain name %s", *iotDomain)
 
 	config := kubernetes.NewClientConfig(*apiserverArg, *kubeconfigArg, *iotDomain)

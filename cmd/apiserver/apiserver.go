@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/emicklei/go-restful"
 	"github.com/fest-research/iot-addon/pkg/api/v1"
@@ -31,6 +32,7 @@ func main() {
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
 
+	log.SetOutput(os.Stdout)
 	log.Printf("Using HTTP port: %d", *argPort)
 	if *argKubeconfig == "" && *argApiserverHost == "" {
 		log.Println("Kubeconfig and apiserver arguments not provided. Falling back to inClusterConfig.")
