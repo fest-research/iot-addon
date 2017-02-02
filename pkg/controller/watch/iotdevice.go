@@ -129,7 +129,7 @@ func (w IotDeviceWatcher) addModifyDeviceHandler(iotDevice types.IotDevice) erro
 		}
 
 		for _, pod := range pods {
-			err := w.deletePod(pod)
+			err := kubernetes.DeletePod(w.restClient, pod)
 			if err != nil {
 				return err
 			}
@@ -149,18 +149,6 @@ func (w IotDeviceWatcher) addModifyDeviceHandler(iotDevice types.IotDevice) erro
 		}
 	}
 	return nil
-}
-
-func (w IotDeviceWatcher) deletePod(pod types.IotPod) error {
-
-	return w.restClient.Delete().
-		Namespace(pod.Metadata.Namespace).
-		Resource(types.IotPodType).
-		Name(pod.Metadata.Name).
-		Body(&metav1.DeleteOptions{}).
-		Do().
-		Error()
-
 }
 
 func createTypeMeta(apiVersion string) metav1.TypeMeta {

@@ -2,7 +2,7 @@ apiVersion: "fujitsu.com/v1"
 kind: IotDevice
 metadata:
   name: raspberry-pi-1
-  namespace: iot
+  namespace: default
   labels:
     unschedulable: "false"
 ---
@@ -10,6 +10,6 @@ metadata:
   kind: IotDevice
   metadata:
     name: raspberry-pi-2
-    namespace: iot
+    namespace: default
     labels:
       unschedulable: "false"

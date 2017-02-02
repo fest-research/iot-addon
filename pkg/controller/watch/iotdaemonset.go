@@ -137,7 +137,10 @@ func (w IotDaemonSetWatcher) handleDaemonSetModification(ds types.IotDaemonSet) 
 		if !kubernetes.IsPodCorrectlyScheduled(ds, existingPod) {
 			kubernetes.DeletePod(w.restClient, existingPod)
 		} else {
-			kubernetes.UpdatePod(w.restClient, existingPod, ds.Spec.Template)
+			err = kubernetes.UpdatePod(w.restClient, existingPod, ds.Spec.Template)
+			if err != nil {
+				log.Printf("Error. Can not update IotPod %s", existingPod.Metadata.Name)
+			}
 		}
 	}
 

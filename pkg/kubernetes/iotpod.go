@@ -72,8 +72,9 @@ func GetDevicesMissingPods(dsDestinedDevices []types.IotDevice, existingPods []t
 
 }
 
+// DeleteDaemonSetPods deletes IotPods created by specific IotDaemonSet.
 func DeleteDaemonSetPods(restClient *rest.RESTClient, ds types.IotDaemonSet) error {
-	log.Printf("Deleting pods created by %s %s\n", ds.Metadata.Name, ds.TypeMeta.Kind)
+	log.Printf("Trying to delete pods created by %s %s\n", ds.Metadata.Name, ds.TypeMeta.Kind)
 	return restClient.Delete().
 		Resource(types.IotPodType).
 		Namespace(ds.Metadata.Namespace).
@@ -84,33 +85,35 @@ func DeleteDaemonSetPods(restClient *rest.RESTClient, ds types.IotDaemonSet) err
 		Error()
 }
 
-func DeletePod(restClient *rest.RESTClient, pod types.IotPod) {
-	restClient.Delete().Resource(types.IotPodType).Namespace(pod.Metadata.Namespace).Name(pod.Metadata.Name).Do()
+// DeletePod deletes specific IotPod.
+func DeletePod(restClient *rest.RESTClient, pod types.IotPod) error {
+	log.Printf("Trying to delete %s %s\n", pod.Metadata.SelfLink, pod.TypeMeta.Kind)
+	return restClient.Delete().
+		Resource(types.IotPodType).
+		Namespace(pod.Metadata.Namespace).
+		Name(pod.Metadata.Name).
+		Do().
+		Error()
 }
 
-func UpdatePod(restClient *rest.RESTClient, pod types.IotPod, template v1.PodTemplateSpec) {
-	newPod := types.IotPod{}
+func UpdatePod(restClient *rest.RESTClient, pod types.IotPod, template v1.PodTemplateSpec) error {
 	pod.Spec = template.Spec
 
 	labelsMap := map[string]string{
 		types.CreatedBy:      pod.Metadata.Labels[types.CreatedBy],
 		types.DeviceSelector: pod.Metadata.Labels[types.DeviceSelector],
 	}
-	common.MapCopy(labelsMap, template.ObjectMeta.Labels)
 
+	common.MapCopy(labelsMap, template.ObjectMeta.Labels)
 	pod.Metadata.Labels = labelsMap
 
-	err := restClient.Put().
+	return restClient.Put().
 		Namespace(pod.Metadata.Namespace).
 		Resource(types.IotPodType).
 		Name(pod.Metadata.Name).
 		Body(&pod).
 		Do().
-		Into(&newPod)
-	if err != nil {
-		log.Printf("Error. Can not update IotPod %s", pod.Metadata.Name)
-	}
-
+		Error()
 }
 
 // IsPodCreated checks if there is any IotPod created for IotDaemonSet on IotDevice.
