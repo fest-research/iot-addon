@@ -138,7 +138,7 @@ func IsPodCreated(restClient *rest.RESTClient, ds types.IotDaemonSet, device typ
 		}.AsSelector()).
 		Do().
 		Into(&podList)
-	if err {
+	if err != nil {
 		return false
 	}
 

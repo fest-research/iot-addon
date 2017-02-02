@@ -10,6 +10,7 @@ import (
 	client "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api"
 	"k8s.io/client-go/rest"
+	"fmt"
 )
 
 type IotPodWatcher struct {
@@ -60,8 +61,7 @@ func (w IotPodWatcher) start() error {
 			log.Printf("Pod deleted %s\n", iotPod.Metadata.Name)
 
 		} else if e.Type == watch.Error {
-			log.Println("Error")
-			break
+			return fmt.Errorf("Error %s", types.IotPodType)
 		}
 	}
 }

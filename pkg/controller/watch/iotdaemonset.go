@@ -1,10 +1,9 @@
 package watch
 
 import (
-	"log"
-	"time"
-
 	"fmt"
+	"log"
+
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
