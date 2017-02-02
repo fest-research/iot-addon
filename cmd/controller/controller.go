@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"os"
+	"time"
 
 	"github.com/fest-research/iot-addon/pkg/controller/watch"
 	"github.com/fest-research/iot-addon/pkg/kubernetes"
@@ -33,8 +34,13 @@ func main() {
 	restClient := kubernetes.NewRESTClient(config)
 	clientset := kubernetes.NewClientset(config)
 
-	// Start watches. Last one shouldn't be goroutine, otherwise program will exit.
+	// Start watches.
 	go watch.NewIotDeviceWatcher(dynamicClient, restClient, clientset, *iotDomain).Watch()
 	go watch.NewIotPodWatcher(dynamicClient, restClient, clientset, *iotDomain).Watch()
-	watch.NewIotDaemonSetWatcher(dynamicClient, restClient, clientset, *iotDomain).Watch()
+	go watch.NewIotDaemonSetWatcher(dynamicClient, restClient, clientset, *iotDomain).Watch()
+
+	// Avoid program exit.
+	for {
+		time.Sleep(time.Second)
+	}
 }
