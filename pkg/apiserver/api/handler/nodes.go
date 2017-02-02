@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/fest-research/iot-addon/pkg/apiserver/watch"
 	apimachinery "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/json"
 	apiv1 "k8s.io/client-go/pkg/api/v1"
@@ -161,6 +163,11 @@ func (this NodeService) listNodes(req *restful.Request, resp *restful.Response) 
 	// TODO: refactor this later, set based on tenant
 	namespace := "default"
 
+	fieldSelector, err := this.parseFieldSelector(req)
+	if err != nil {
+		handleInternalServerError(resp, err)
+	}
+
 	obj, err := this.proxy.List(iotDeviceResource, namespace, &apimachinery.ListOptions{})
 	if err != nil {
 		handleInternalServerError(resp, err)
@@ -168,6 +175,13 @@ func (this NodeService) listNodes(req *restful.Request, resp *restful.Response) 
 	}
 
 	iotDeviceList := obj.(*v1.IotDeviceList)
+
+	for i, device := range iotDeviceList.Items {
+		if device.Metadata.Name == fieldSelector.Requirements()[0].Value {
+			iotDeviceList.Items = []v1.IotDevice{iotDeviceList.Items[i]}
+		}
+	}
+
 	nodeList := this.nodeController.ToNodeList(iotDeviceList)
 	response, _ := json.Marshal(nodeList)
 
@@ -241,4 +255,13 @@ func (this NodeService) watchNodes(req *restful.Request, resp *restful.Response)
 		handleInternalServerError(resp, err)
 		return
 	}
+}
+
+func (this NodeService) parseFieldSelector(req *restful.Request) (fields.Selector, error) {
+	selectorString := req.QueryParameter("fieldSelector")
+	selector, err := fields.ParseSelector(selectorString)
+	if err != nil {
+		return nil, fmt.Errorf("[pod service] failed to parse field selector: %s", err)
+	}
+	return selector, nil
 }
