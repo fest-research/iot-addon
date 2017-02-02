@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"fmt"
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/kubernetes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -11,7 +12,6 @@ import (
 	"k8s.io/client-go/dynamic"
 	client "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api"
-	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
 	"k8s.io/client-go/rest"
 )
 
@@ -34,48 +34,27 @@ func NewIotDaemonSetWatcher(dynamicClient *dynamic.Client, restClient *rest.REST
 
 // WatchIotDaemonSet watches for IotDaemonSet events and handles them.
 func (w IotDaemonSetWatcher) Watch() {
-	var watcher watch.Interface = nil
-	var err error = nil
-	var resourceName string = types.TprIotDaemonSet + "." + w.iotDomain
-
-	ticker := time.NewTicker(time.Second * 4)
-	defer ticker.Stop()
-
-	for ok := true; ok; ok = watcher == nil {
-		select {
-		case <-ticker.C:
-			watcher, err = w.dynamicClient.Resource(&metav1.APIResource{
-				Name:       types.IotDaemonSetType,
-				Namespaced: true,
-			}, api.NamespaceAll).Watch(&metav1.ListOptions{})
-			if err != nil {
-				log.Println(err.Error())
-				_, err = w.clientset.ExtensionsV1beta1().ThirdPartyResources().Get(resourceName, metav1.GetOptions{})
-				if err != nil {
-					tpr := &v1beta1.ThirdPartyResource{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: resourceName,
-						},
-						Versions: []v1beta1.APIVersion{
-							{Name: types.APIVersion},
-						},
-						Description: "A specification of a IoT Daemon Set",
-					}
-
-					_, err := w.clientset.ExtensionsV1beta1().ThirdPartyResources().Create(tpr)
-					if err != nil {
-						log.Println(err.Error())
-					}
-				}
-			} else {
-				ticker.Stop()
-			}
-			break
+	for {
+		err := w.start()
+		if err != nil {
+			log.Printf("An error occured: %s", err.Error())
 		}
 	}
+}
+
+func (w IotDaemonSetWatcher) start() error {
+	watcher, err := w.dynamicClient.Resource(&metav1.APIResource{
+		Name:       types.IotDaemonSetType,
+		Namespaced: true,
+	}, api.NamespaceAll).Watch(&metav1.ListOptions{})
+
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Watcher for %s created \n", types.IotDaemonSetType)
 
 	defer watcher.Stop()
-	log.Printf("Watcher for %s created \n", types.IotDaemonSetType)
 
 	for {
 		e := <-watcher.ResultChan()
@@ -89,8 +68,7 @@ func (w IotDaemonSetWatcher) Watch() {
 		} else if e.Type == watch.Deleted {
 			w.handleDaemonSetDeletion(*ds)
 		} else if e.Type == watch.Error {
-			log.Printf("Ending %s watch due to an error\n", types.IotDaemonSetType)
-			break
+			return fmt.Errorf("%s watch ended due to an error", types.IotDaemonSetType)
 		}
 	}
 }

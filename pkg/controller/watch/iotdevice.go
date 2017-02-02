@@ -1,8 +1,8 @@
 package watch
 
 import (
+	"fmt"
 	"log"
-	"time"
 
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/kubernetes"
@@ -11,7 +11,6 @@ import (
 	"k8s.io/client-go/dynamic"
 	client "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api"
-	"k8s.io/client-go/pkg/apis/extensions/v1beta1"
 	"k8s.io/client-go/rest"
 )
 
@@ -20,11 +19,6 @@ type IotDeviceWatcher struct {
 	restClient    *rest.RESTClient
 	clientset     *client.Clientset
 	iotDomain     string
-}
-
-var iotDeviceResource = metav1.APIResource{
-	Name:       types.IotDeviceType,
-	Namespaced: true,
 }
 
 func NewIotDeviceWatcher(dynamicClient *dynamic.Client, restClient *rest.RESTClient, clientset *client.Clientset,
@@ -38,50 +32,27 @@ func NewIotDeviceWatcher(dynamicClient *dynamic.Client, restClient *rest.RESTCli
 }
 
 func (w IotDeviceWatcher) Watch() {
-
-	var watcher watch.Interface = nil
-	var err error = nil
-	var resourceName string = types.TprIotDevice + "." + w.iotDomain
-	ticker := time.NewTicker(time.Second * 4)
-	defer ticker.Stop()
-
-	for ok := true; ok; ok = watcher == nil {
-		select {
-		case <-ticker.C:
-			watcher, err = w.dynamicClient.
-				Resource(&iotDeviceResource, api.NamespaceAll).
-				Watch(&metav1.ListOptions{})
-			if err != nil {
-				log.Println(err.Error())
-
-				_, err = w.clientset.ExtensionsV1beta1().ThirdPartyResources().
-					Get(resourceName, metav1.GetOptions{})
-
-				if err != nil {
-					tpr := &v1beta1.ThirdPartyResource{
-						ObjectMeta: metav1.ObjectMeta{
-							Name: resourceName,
-						},
-						Versions: []v1beta1.APIVersion{
-							{Name: types.APIVersion},
-						},
-						Description: "A specification of a IoT Device",
-					}
-
-					_, err := w.clientset.ExtensionsV1beta1().ThirdPartyResources().Create(tpr)
-					if err != nil {
-						log.Println(err.Error())
-					}
-				}
-			} else {
-				ticker.Stop()
-			}
-			break
+	for {
+		err := w.start()
+		if err != nil {
+			log.Printf("An error occured: %s", err.Error())
 		}
 	}
+}
+
+func (w IotDeviceWatcher) start() error {
+	watcher, err := w.dynamicClient.Resource(&metav1.APIResource{
+		Name:       types.IotDeviceType,
+		Namespaced: true,
+	}, api.NamespaceAll).Watch(&metav1.ListOptions{})
+
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Watcher for %s created \n", types.IotDeviceType)
 
 	defer watcher.Stop()
-	log.Printf("Watcher for %s created \n", types.IotDeviceType)
 
 	for {
 		e := <-watcher.ResultChan()
@@ -110,8 +81,7 @@ func (w IotDeviceWatcher) Watch() {
 			}
 
 		} else if e.Type == watch.Error {
-			log.Println("Error")
-			break
+			return fmt.Errorf("Error %s", types.IotDeviceType)
 		}
 	}
 }

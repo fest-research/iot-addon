@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/fest-research/iot-addon/pkg/api/v1"
 	"github.com/fest-research/iot-addon/pkg/controller/watch"
 	"github.com/fest-research/iot-addon/pkg/kubernetes"
 	"github.com/spf13/pflag"
@@ -33,6 +34,11 @@ func main() {
 	dynamicClient := kubernetes.NewDynamicClient(config)
 	restClient := kubernetes.NewRESTClient(config)
 	clientset := kubernetes.NewClientset(config)
+
+	// Register custom types.
+	v1.RegisterType(clientset, v1.TprIotDevice+"."+*iotDomain)
+	v1.RegisterType(clientset, v1.TprIotDaemonSet+"."+*iotDomain)
+	v1.RegisterType(clientset, v1.TprIotPod+"."+*iotDomain)
 
 	// Start watches.
 	go watch.NewIotDeviceWatcher(dynamicClient, restClient, clientset, *iotDomain).Watch()
