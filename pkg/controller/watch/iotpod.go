@@ -1,6 +1,7 @@
 package watch
 
 import (
+	"fmt"
 	"log"
 
 	types "github.com/fest-research/iot-addon/pkg/api/v1"
@@ -10,7 +11,6 @@ import (
 	client "k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/pkg/api"
 	"k8s.io/client-go/rest"
-	"fmt"
 )
 
 type IotPodWatcher struct {
