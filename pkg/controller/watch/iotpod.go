@@ -54,7 +54,12 @@ func (w IotPodWatcher) start() error {
 	defer watcher.Stop()
 
 	for {
-		e := <-watcher.ResultChan()
+		e, ok := <-watcher.ResultChan()
+
+		if !ok {
+			return fmt.Errorf("%s watch ended due to a timeout", types.IotPodType)
+		}
+
 		iotPod, _ := e.Object.(*types.IotPod)
 
 		if e.Type == watch.Deleted {

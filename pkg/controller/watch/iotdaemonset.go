@@ -56,7 +56,11 @@ func (w IotDaemonSetWatcher) start() error {
 	defer watcher.Stop()
 
 	for {
-		e := <-watcher.ResultChan()
+		e, ok := <-watcher.ResultChan()
+
+		if !ok {
+			return fmt.Errorf("%s watch ended due to a timeout", types.IotDaemonSetType)
+		}
 
 		ds, _ := e.Object.(*types.IotDaemonSet)
 

@@ -55,7 +55,11 @@ func (w IotDeviceWatcher) start() error {
 	defer watcher.Stop()
 
 	for {
-		e := <-watcher.ResultChan()
+		e, ok := <-watcher.ResultChan()
+
+		if !ok {
+			return fmt.Errorf("%s watch ended due to a timeout", types.IotDeviceType)
+		}
 
 		modificationMap := map[string]bool{}
 		iotDevice, _ := e.Object.(*types.IotDevice)
