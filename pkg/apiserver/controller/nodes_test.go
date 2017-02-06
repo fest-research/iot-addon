@@ -40,7 +40,7 @@ func createTestNode(name string) *kubeapi.Node {
 func createTestIotDevice(name, namespace string) *v1.IotDevice {
 	return &v1.IotDevice{
 		TypeMeta: iotTypeMeta,
-		Metadata: kubeapi.ObjectMeta{
+		Metadata: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
