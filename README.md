@@ -37,3 +37,11 @@ To deploy it to Docker Hub use following commands:
 docker login
 make deploy
 ```
+
+## Configure kubectl
+
+```shell
+$ kubectl config set-cluster demo-cluster --server=http://104.155.11.172:8080/
+$ kubectl config set-context demo --cluster=demo-cluster
+$ kubectl config use-context demo
+```
