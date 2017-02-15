@@ -9,6 +9,7 @@ IoT addon for Kubernetes clusters.
 ```shell
 $ kubectl create -f https://raw.githubusercontent.com/fest-research/iot-addon/master/assets/iot-addon.yaml
 ```
+Flashing RaspberryPi devices with this [software](https://github.com/fest-research/ubikube) to connect easily to the iot-server
 
 ## Development
 Clone repository into `$GOPATH/src/github.com/fest-research/`:
