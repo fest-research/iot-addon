@@ -4,6 +4,12 @@ IoT addon for Kubernetes clusters.
 ## Status
 [![Build Status](https://travis-ci.org/fest-research/iot-addon.svg?branch=master)](https://travis-ci.org/fest-research/iot-addon)
 
+## Deploy to Kubernetes
+
+```shell
+$ kubectl create -f https://raw.githubusercontent.com/fest-research/iot-addon/master/assets/iot-addon.yaml
+```
+
 ## Development
 Clone repository into `$GOPATH/src/github.com/fest-research/`:
 ```
