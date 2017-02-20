@@ -140,11 +140,12 @@ func (this PodService) listPods(req *restful.Request, resp *restful.Response) {
 	fieldSelector, err := this.parseFieldSelector(req)
 	if err != nil {
 		handleInternalServerError(resp, err)
+		return
 	}
 	labelSelector, err := this.labelFromNodeSelector(fieldSelector)
 	if err != nil {
 		handleInternalServerError(resp, err)
-
+		return
 	}
 
 	obj, err := this.proxy.List(iotPodResource, namespace, &apimachinery.ListOptions{
@@ -170,11 +171,13 @@ func (this PodService) watchPods(req *restful.Request, resp *restful.Response) {
 	fieldSelector, err := this.parseFieldSelector(req)
 	if err != nil {
 		handleInternalServerError(resp, err)
+		return
 	}
 
 	labelSelector, err := this.labelFromNodeSelector(fieldSelector)
 	if err != nil {
 		handleInternalServerError(resp, err)
+		return
 	}
 
 	watcher, err := this.proxy.Watch(iotPodResource, namespace, &apimachinery.ListOptions{

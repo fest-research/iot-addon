@@ -166,6 +166,7 @@ func (this NodeService) listNodes(req *restful.Request, resp *restful.Response) 
 	fieldSelector, err := this.parseFieldSelector(req)
 	if err != nil {
 		handleInternalServerError(resp, err)
+		return
 	}
 
 	obj, err := this.proxy.List(iotDeviceResource, namespace, &apimachinery.ListOptions{})
@@ -177,8 +178,11 @@ func (this NodeService) listNodes(req *restful.Request, resp *restful.Response) 
 	iotDeviceList := obj.(*v1.IotDeviceList)
 
 	for i, device := range iotDeviceList.Items {
-		if device.Metadata.Name == fieldSelector.Requirements()[0].Value {
-			iotDeviceList.Items = []v1.IotDevice{iotDeviceList.Items[i]}
+		for _, req := range fieldSelector.Requirements() {
+			if device.Metadata.Name == req.Value {
+				iotDeviceList.Items = []v1.IotDevice{iotDeviceList.Items[i]}
+				break
+			}
 		}
 	}
 
