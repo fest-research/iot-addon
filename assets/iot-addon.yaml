@@ -22,7 +22,7 @@ spec:
         args:
           # No runtime arguments needed for in-cluster configuration.
           # Otherwise, it's a good place to put them.
-          # - --apiserver=http://10.132.0.2:8080
+          - --apiserver=http://35.187.21.121:8080
 ---
 kind: Deployment
 apiVersion: extensions/v1beta1
@@ -51,7 +51,7 @@ spec:
         args:
           # No runtime arguments needed for in-cluster configuration.
           # Otherwise, it's a good place to put them.
-          # - --apiserver=http://10.132.0.2:8080
+          - --apiserver=http://35.187.21.121:8080
 ---
 apiVersion: v1
 kind: Service
