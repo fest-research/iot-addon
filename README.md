@@ -54,15 +54,7 @@ $ kubectl config use-context demo
 ```
 
 ## Setup of Insecure Kubernetes
-```
-$ git clone https://github.com/kubernetes/kube-deploy
-$ cd kube-deploy/docker-multinode
-$ docker pull zreigz/hyperkube-amd64:v1.6.0-alpha.10
-$ docker tag zreigz/hyperkube-amd64:v1.6.0-alpha.10 gcr.io/google_containers/hyperkube-amd64:v1.6.0-alpha.10
-$ export IP_ADDRESS=<internal ip-adress>
-$ export K8S_VERSION=v1.6.0-alpha.10
-$ export USE_CNI=true
-$ ./master.sh
-```
 
-Shut down with `./turn-down.sh`
+Run the script `assets/hyperkube/hyperkube.sh`
+
+Shut down with `docker kill $(docker ps -q)`. Execute twice because some containers might have been restarted by Kubernetes.
