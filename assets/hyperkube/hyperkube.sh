@@ -10,7 +10,7 @@ docker run \
     --pid=host \
     --privileged=true \
     -d \
-    gcr.io/google_containers/hyperkube-amd64:${K8S_VERSION} \
+    fest/hyperkube:${K8S_VERSION} \
     /hyperkube kubelet \
         --allow-privileged=true \
         --hostname-override="127.0.0.1" \
