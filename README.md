@@ -55,6 +55,9 @@ $ kubectl config use-context demo
 
 ## Setup of Insecure Kubernetes
 
-Run the script `assets/hyperkube/hyperkube.sh`
+Run the command 
+```
+$ curl https://raw.githubusercontent.com/fest-research/iot-addon/master/assets/hyperkube/hyperkube.sh | sh
+```
 
 Shut down with `docker kill $(docker ps -q)`. Execute twice because some containers might have been restarted by Kubernetes.
