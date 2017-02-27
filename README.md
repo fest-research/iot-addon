@@ -13,6 +13,8 @@ $ curl https://raw.githubusercontent.com/fest-research/iot-addon/master/assets/h
 ```
 You can shut down with `docker kill $(docker ps -q)`. Execute twice because some containers might have been restarted by Kubernetes.
 
+Install and configure `kubectl` to connect with master
+
 ####2. Deploy IoT-Addon
 
 ```shell
