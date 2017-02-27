@@ -25,12 +25,12 @@ $ kubectl create -f https://raw.githubusercontent.com/fest-research/iot-addon/ma
 Flash RaspberryPi devices with this [software](https://github.com/fest-research/ubikube) to connect easily to the iot-server. 
 
 ####4. Deploy Demo
-Deploy a sample application to the Kubernetes cluster and all RaspberryPis
+Deploy a sample application to the Kubernetes cluster and all RaspberryPis.
 
 ```shell
 $ kubectl create -f https://raw.githubusercontent.com/fest-research/demo/master/assets/demo-deployment-all.yaml
 ```
-Please note: the backend IP is currently hard coded, so you might want to fork the project.
+ Cloud part can be found [here](https://github.com/fest-research/demo) and device part [here](https://github.com/fest-research/demo-raspi). Please note: the backend IP is currently hard coded, so you might want to fork the project.
 
 
 ## Development
