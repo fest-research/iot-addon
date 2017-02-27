@@ -11,7 +11,7 @@ IoT addon for Kubernetes clusters.
 ```shell
 $ curl https://raw.githubusercontent.com/fest-research/iot-addon/master/assets/hyperkube/hyperkube.sh | sh
 ```
-Shut down with `docker kill $(docker ps -q)`. Execute twice because some containers might have been restarted by Kubernetes.
+You can shut down with `docker kill $(docker ps -q)`. Execute twice because some containers might have been restarted by Kubernetes.
 
 ####2. Deploy IoT-Addon
 
@@ -19,7 +19,7 @@ Shut down with `docker kill $(docker ps -q)`. Execute twice because some contain
 $ kubectl create -f https://raw.githubusercontent.com/fest-research/iot-addon/master/assets/iot-addon.yaml
 ```
 
-####3. Register Raspberries
+####3. Register RaspberryPIs
 Flash RaspberryPi devices with this [software](https://github.com/fest-research/ubikube) to connect easily to the iot-server. 
 
 ####4. Deploy Demo
