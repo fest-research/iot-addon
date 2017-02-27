@@ -4,12 +4,34 @@ IoT addon for Kubernetes clusters.
 ## Status
 [![Build Status](https://travis-ci.org/fest-research/iot-addon.svg?branch=master)](https://travis-ci.org/fest-research/iot-addon)
 
+## Quick Start
+
+####1. Create insecure Kubernetes cluster
+
+```shell
+$ curl https://raw.githubusercontent.com/fest-research/iot-addon/master/assets/hyperkube/hyperkube.sh | sh
+```
+
+####2. Deploy IoT-Addon
+
+```shell
+$ kubectl create -f https://raw.githubusercontent.com/fest-research/iot-addon/master/assets/iot-addon.yaml
+```
+
+####3. Register Raspberries
+Flash RaspberryPi devices with this [software](https://github.com/fest-research/ubikube) to connect easily to the iot-server. 
+
+####4. Deploy Demo
+
+```shell
+$ kubectl create -f https://raw.githubusercontent.com/fest-research/demo/master/assets/demo-deployment-all.yaml
+```
+
 ## Deploy to Kubernetes
 
 ```shell
 $ kubectl create -f https://raw.githubusercontent.com/fest-research/iot-addon/master/assets/iot-addon.yaml
 ```
-Flash RaspberryPi devices with this [software](https://github.com/fest-research/ubikube) to connect easily to the iot-server
 
 ## Development
 Clone repository into `$GOPATH/src/github.com/fest-research/`:
