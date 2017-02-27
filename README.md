@@ -11,6 +11,7 @@ IoT addon for Kubernetes clusters.
 ```shell
 $ curl https://raw.githubusercontent.com/fest-research/iot-addon/master/assets/hyperkube/hyperkube.sh | sh
 ```
+Shut down with `docker kill $(docker ps -q)`. Execute twice because some containers might have been restarted by Kubernetes.
 
 ####2. Deploy IoT-Addon
 
@@ -29,12 +30,6 @@ $ kubectl create -f https://raw.githubusercontent.com/fest-research/demo/master/
 ```
 Please note: the backend IP is currently hard coded, so you might want to fork the project.
 
-
-## Deploy to Kubernetes
-
-```shell
-$ kubectl create -f https://raw.githubusercontent.com/fest-research/iot-addon/master/assets/iot-addon.yaml
-```
 
 ## Development
 Clone repository into `$GOPATH/src/github.com/fest-research/`:
@@ -78,11 +73,3 @@ $ kubectl config set-context demo --cluster=demo-cluster
 $ kubectl config use-context demo
 ```
 
-## Setup of Insecure Kubernetes
-
-Run the command 
-```
-$ curl https://raw.githubusercontent.com/fest-research/iot-addon/master/assets/hyperkube/hyperkube.sh | sh
-```
-
-Shut down with `docker kill $(docker ps -q)`. Execute twice because some containers might have been restarted by Kubernetes.
