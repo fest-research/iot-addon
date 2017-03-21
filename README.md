@@ -6,7 +6,7 @@ IoT addon for Kubernetes clusters.
 
 ## Quick Start
 
-####1. Create insecure Kubernetes cluster
+#### 1. Create insecure Kubernetes cluster
 
 ```shell
 $ curl https://raw.githubusercontent.com/fest-research/iot-addon/master/assets/hyperkube/hyperkube.sh | sh
@@ -15,16 +15,16 @@ You can shut down with `docker kill $(docker ps -q)`. Execute twice because some
 
 Install and configure `kubectl` to connect with master
 
-####2. Deploy IoT-Addon
+#### 2. Deploy IoT-Addon
 
 ```shell
 $ kubectl create -f https://raw.githubusercontent.com/fest-research/iot-addon/master/assets/iot-addon.yaml
 ```
 
-####3. Register RaspberryPIs
+#### 3. Register RaspberryPIs
 Flash RaspberryPi devices with this [software](https://github.com/fest-research/ubikube) to connect easily to the iot-server. 
 
-####4. Deploy Demo
+#### 4. Deploy Demo
 Deploy a sample application to the Kubernetes cluster and all RaspberryPis.
 
 ```shell
